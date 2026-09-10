@@ -1,3 +1,4 @@
+import { Onboarding } from "@/components/onboarding";
 import { Plant } from "@/components/plant";
 import { Button } from "@/components/ui";
 import { useAppStore } from "@/lib/store";
@@ -70,8 +71,9 @@ function Splash() {
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const hydrated = useAppStore((s) => s.hydrated);
+  const onboardingDone = useAppStore((s) => s.settings.onboardingDone);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const hideNav = pathname.startsWith("/run/");
+  const hideNav = pathname.startsWith("/run/") || !onboardingDone;
   const alerts = useAppStore((s) => s.alerts);
   const dismiss = useAppStore((s) => s.dismissAlert);
   const startRun = useAppStore((s) => s.startRun);
@@ -81,6 +83,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const plant = plantStage(streak);
 
   if (!hydrated) return <Splash />;
+  if (!onboardingDone) return <Onboarding />;
 
   return (
     <div className="min-h-dvh w-full bg-sunken">

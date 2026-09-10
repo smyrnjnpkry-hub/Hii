@@ -10,6 +10,8 @@ export type NoiseId = "off" | "white" | "pink" | "brown" | "rain" | "fan";
 
 export type RingColor = "sun" | "mint" | "sky" | "coral" | "ink";
 
+export type Mood = "good" | "ok" | "low";
+
 export type Step = {
   id: string;
   title: string;
@@ -63,6 +65,7 @@ export type Completion = {
   skippedSteps: number;
   durationSec: number;
   stepActualMs: number[];
+  mood?: Mood;
 };
 
 export type RunStatus = "running" | "paused" | "overtime" | "done";
@@ -83,6 +86,8 @@ export type RunSession = {
 
 export type Settings = {
   displayName: string;
+  plantName: string;
+  onboardingDone: boolean;
   theme: "light" | "dark";
   voiceEnabled: boolean;
   soundEnabled: boolean;
@@ -122,6 +127,8 @@ export type Template = {
 
 export const DEFAULT_SETTINGS: Settings = {
   displayName: "",
+  plantName: "Sprout",
+  onboardingDone: false,
   theme: "light",
   voiceEnabled: true,
   soundEnabled: true,
@@ -144,4 +151,10 @@ export const RING_HEX: Record<RingColor, string> = {
   sky: "#4d8fe8",
   coral: "#e86a4d",
   ink: "#1a1a24",
+};
+
+export const MOOD_META: Record<Mood, { emoji: string; label: string }> = {
+  good: { emoji: "😊", label: "Good" },
+  ok: { emoji: "😐", label: "Okay" },
+  low: { emoji: "😔", label: "Low" },
 };
