@@ -1,0 +1,107 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-bg: #fffdf6;
+  --color-surface: #ffffff;
+  --color-sunken: #efe8d6;
+  --color-fg: #1a1a24;
+  --color-muted: #6e6e7a;
+  --color-faint: #9a9aa6;
+  --color-sun: #f5c400;
+  --color-sun-ink: #1a1a24;
+  --color-mint: #2f9e6b;
+  --color-sky: #4d8fe8;
+  --color-coral: #e86a4d;
+  --color-leaf: #3fa35a;
+  --color-border: color-mix(in oklab, var(--color-fg) 8%, transparent);
+  --color-ring: #f5c400;
+
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 1.75rem;
+
+  --shadow-card:
+    0 0 0 1px color-mix(in oklab, var(--color-fg) 6%, transparent),
+    0 1px 2px -1px color-mix(in oklab, var(--color-fg) 6%, transparent),
+    0 8px 24px -12px color-mix(in oklab, var(--color-fg) 10%, transparent);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.dark {
+  --color-bg: #121214;
+  --color-surface: #1c1c20;
+  --color-sunken: #0e0e10;
+  --color-fg: #f3f3f6;
+  --color-muted: #a0a0ab;
+  --color-faint: #71717a;
+  --color-sun: #f5c400;
+  --color-sun-ink: #1a1a24;
+  --color-mint: #4ecf8e;
+  --color-sky: #6aa6f5;
+  --color-coral: #f0846c;
+  --color-leaf: #62c57a;
+  --color-border: color-mix(in oklab, var(--color-fg) 12%, transparent);
+  --shadow-card: 0 0 0 1px color-mix(in oklab, var(--color-fg) 10%, transparent);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100dvh;
+    width: 100%;
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
