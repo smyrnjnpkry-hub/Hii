@@ -6,6 +6,7 @@ import { speak } from "@/lib/tts";
 import type {
   Completion,
   InAppAlert,
+  Mood,
   Routine,
   RoutineReminder,
   RunSession,
@@ -15,6 +16,7 @@ import type {
   Template,
 } from "@/lib/types";
 import { DEFAULT_SETTINGS } from "@/lib/types";
+import { TEMPLATES } from "@/lib/templates";
 import { todayKey, uid } from "@/lib/utils";
 
 export type Checks = Record<string, string[]>;
@@ -59,6 +61,8 @@ type AppState = PersistShape & {
   dismissAlert: (id: string) => void;
   pushAlert: (alert: Omit<InAppAlert, "id" | "createdAt">) => void;
   markFired: (key: string) => void;
+  completeOnboarding: (plantName: string, templateIds: string[]) => void;
+  setCompletionMood: (completionId: string, mood: Mood) => void;
 };
 
 function checkKey(date: string, routineId: string) {
@@ -124,8 +128,9 @@ export const useAppStore = create<AppState>()(
 
       seedIfNeeded: () => {
         if (get().hasSeeded) return;
+        // First-run: reminders only. Routines come from onboarding picks.
         set({
-          routines: seedRoutines(),
+          routines: [],
           reminders: seedReminders(),
           hasSeeded: true,
         });
@@ -448,6 +453,34 @@ export const useAppStore = create<AppState>()(
           const kept = s.firedKeys.filter((k) => k.startsWith(today) || k.includes(today));
           return { firedKeys: [...kept, key].slice(-200) };
         }),
+
+      completeOnboarding: (plantName, templateIds) => {
+        const picked = templateIds
+          .map((id) => TEMPLATES.find((t) => t.id === id))
+          .filter((t): t is Template => Boolean(t))
+          .map((t) => templateToRoutine(t));
+        const fallback = picked.length > 0 ? picked : seedRoutines().slice(0, 2);
+        set((s) => ({
+          routines: [
+            ...fallback,
+            ...s.routines.filter((r) => !r.id.startsWith("seed-")),
+          ],
+          reminders: s.reminders.length ? s.reminders : seedReminders(),
+          hasSeeded: true,
+          settings: {
+            ...s.settings,
+            plantName: plantName.trim() || "Sprout",
+            onboardingDone: true,
+          },
+        }));
+      },
+
+      setCompletionMood: (completionId, mood) =>
+        set((s) => ({
+          completions: s.completions.map((c) =>
+            c.id === completionId ? { ...c, mood } : c,
+          ),
+        })),
     }),
     {
       name: "dayring-v1",
@@ -464,6 +497,28 @@ export const useAppStore = create<AppState>()(
         firedKeys: s.firedKeys,
         hasSeeded: s.hasSeeded,
       }),
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<PersistShape>;
+        const settings = {
+          ...DEFAULT_SETTINGS,
+          ...(p.settings ?? {}),
+        };
+        // Legacy installs already had routines — skip onboarding once.
+        if (
+          !settings.onboardingDone &&
+          Array.isArray(p.routines) &&
+          p.routines.length > 0
+        ) {
+          settings.onboardingDone = true;
+          if (!settings.plantName) settings.plantName = "Sprout";
+        }
+        return {
+          ...current,
+          ...p,
+          settings,
+          hydrated: false,
+        };
+      },
     },
   ),
 );

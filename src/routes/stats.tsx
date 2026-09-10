@@ -5,9 +5,12 @@ import {
   currentStreak,
   dayCount,
   lastNDays,
+  moodSummary,
+  moodTrend,
   plantStage,
   weekKeys,
 } from "@/lib/stats";
+import { MOOD_META, type Mood } from "@/lib/types";
 import { formatDuration, todayKey } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -24,6 +27,7 @@ export const Route = createFileRoute("/stats")({ component: Stats });
 function Stats() {
   const completions = useAppStore((s) => s.completions);
   const routines = useAppStore((s) => s.routines);
+  const plantName = useAppStore((s) => s.settings.plantName || "Sprout");
   const streak = currentStreak(completions);
   const plant = plantStage(streak);
   const dPlus = dayCount(completions);
@@ -50,6 +54,8 @@ function Stats() {
       n: currentStreak(completions, r.id),
     }))
     .sort((a, b) => b.n - a.n)[0];
+  const trend = moodTrend(completions, 12);
+  const summary = moodSummary(completions);
 
   return (
     <main className="px-5 pt-6 pb-8">
@@ -59,7 +65,9 @@ function Stats() {
       <Card className="mt-5 flex items-center gap-4 p-4">
         <Plant level={plant.level} size={96} />
         <div>
-          <div className="text-xs font-medium text-muted">D+{dPlus}</div>
+          <div className="text-xs font-medium text-muted">
+            {plantName} · D+{dPlus}
+          </div>
           <div className="text-xl font-semibold">{plant.name}</div>
           <p className="text-sm text-muted">{plant.hint}</p>
           <p className="mt-1 text-sm font-medium tabular-nums">{streak} day streak</p>
@@ -78,6 +86,49 @@ function Stats() {
           </Card>
         ))}
       </div>
+
+      {summary.n > 0 ? (
+        <>
+          <h2 className="mt-8 mb-3 text-sm font-semibold tracking-wide text-muted uppercase">
+            Mood check
+          </h2>
+          <Card className="p-4">
+            <div className="flex items-end justify-between gap-2">
+              {(Object.keys(MOOD_META) as Mood[]).map((m) => {
+                const n = summary.counts[m];
+                const pct = summary.n ? Math.round((n / summary.n) * 100) : 0;
+                return (
+                  <div key={m} className="flex flex-1 flex-col items-center gap-1">
+                    <div
+                      className="w-full max-w-10 rounded-t-md bg-sun/80"
+                      style={{ height: `${Math.max(6, pct)}px` }}
+                      title={`${n}×`}
+                    />
+                    <span className="text-lg">{MOOD_META[m].emoji}</span>
+                    <span className="text-[11px] tabular-nums text-muted">{n}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {trend.length > 0 ? (
+              <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+                {trend.map((c) => (
+                  <span
+                    key={c.id}
+                    className="text-base leading-none"
+                    title={c.date}
+                  >
+                    {MOOD_META[c.mood].emoji}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            <p className="mt-2 text-center text-[11px] text-faint">
+              Recent post-run check-ins
+            </p>
+          </Card>
+        </>
+      ) : null}
 
       <h2 className="mt-8 mb-3 text-sm font-semibold tracking-wide text-muted uppercase">
         This week

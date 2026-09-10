@@ -29,12 +29,21 @@ function You() {
       <p className="mt-1 text-sm text-muted">Sounds, voice, timer look, theme.</p>
 
       <Card className="mt-5 divide-y divide-border px-4">
-        <Field label="Name">
+        <Field label="Your name">
           <Input
             className="max-w-40"
             value={settings.displayName}
             placeholder="Optional"
             onChange={(e) => update({ displayName: e.target.value })}
+          />
+        </Field>
+        <Field label="Plant name" hint="Shown on Today and after a run.">
+          <Input
+            className="max-w-40"
+            value={settings.plantName}
+            placeholder="Sprout"
+            maxLength={24}
+            onChange={(e) => update({ plantName: e.target.value })}
           />
         </Field>
         <Field label="Dark mode" hint="Matches the night wind-down energy.">
