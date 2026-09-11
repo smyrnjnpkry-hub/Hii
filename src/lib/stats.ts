@@ -1,4 +1,4 @@
-import type { Completion, Routine } from "@/lib/types";
+import type { Completion, HabitCompletion, Mood, Routine } from "@/lib/types";
 import { addMinutes, todayKey } from "@/lib/utils";
 
 export function totalSec(routine: Routine) {
@@ -62,15 +62,30 @@ export function dayCount(completions: Completion[]) {
   return Math.max(1, Math.floor((b - a) / 86400000) + 1);
 }
 
+/** Nine earned stages — thresholds feel intentional, not arbitrary. */
 export function plantStage(streak: number) {
-  if (streak <= 0) return { level: 0, name: "Seed", hint: "Start a routine to sprout." };
-  if (streak < 3) return { level: 1, name: "Sprout", hint: "Keep showing up." };
-  if (streak < 7) return { level: 2, name: "Seedling", hint: "A week grows roots." };
-  if (streak < 14) return { level: 3, name: "Sapling", hint: "Two weeks of follow-through." };
-  if (streak < 30) return { level: 4, name: "Young tree", hint: "A month of rails." };
-  if (streak < 60) return { level: 5, name: "Tree", hint: "The habit is taking hold." };
-  return { level: 6, name: "Grove", hint: "This is who you are now." };
+  if (streak <= 0)
+    return { level: 0, name: "Seed", hint: "Press start once — that's enough to sprout." };
+  if (streak < 2)
+    return { level: 1, name: "Crack", hint: "The shell is opening. Come back tomorrow." };
+  if (streak < 4)
+    return { level: 2, name: "Sprout", hint: "A green tip. Keep the soil warm." };
+  if (streak < 7)
+    return { level: 3, name: "Seedling", hint: "A week grows roots." };
+  if (streak < 14)
+    return { level: 4, name: "Young plant", hint: "Two weeks of follow-through." };
+  if (streak < 21)
+    return { level: 5, name: "Bush", hint: "Three weeks — the shape is showing." };
+  if (streak < 30)
+    return { level: 6, name: "Sapling", hint: "A month of rails." };
+  if (streak < 45)
+    return { level: 7, name: "Young tree", hint: "The habit is taking hold." };
+  if (streak < 60)
+    return { level: 8, name: "Bloom", hint: "You earned the flowers." };
+  return { level: 9, name: "Grove", hint: "This is who you are now." };
 }
+
+export const PLANT_MAX_LEVEL = 9;
 
 export function completionsOn(completions: Completion[], date: string) {
   return completions.filter((c) => c.date === date);
@@ -96,4 +111,41 @@ export function lastNDays(n: number) {
     out.push(todayKey(x));
   }
   return out;
+}
+
+/** Score a routine for "right now" — lower is better (sooner / more relevant). */
+export function routinePriorityScore(routine: Routine, now = new Date()) {
+  if (routine.anytime) return 10_000 + totalSec(routine);
+  const [h, m] = routine.startTime.split(":").map(Number);
+  const startMin = h * 60 + m;
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const delta = startMin - nowMin;
+  // Past due (within last 3h) bubbles up first; upcoming next; far future last.
+  if (delta < -180) return 8_000 + Math.abs(delta);
+  if (delta < 0) return Math.abs(delta); // overdue recently → top
+  return 200 + delta;
+}
+
+export function moodTrend(completions: Completion[], limit = 14) {
+  const withMood = completions.filter((c): c is Completion & { mood: Mood } => Boolean(c.mood));
+  return withMood.slice(0, limit).reverse();
+}
+
+export function moodSummary(completions: Completion[]) {
+  const counts: Record<Mood, number> = { good: 0, ok: 0, low: 0 };
+  let n = 0;
+  for (const c of completions) {
+    if (!c.mood) continue;
+    counts[c.mood] += 1;
+    n += 1;
+  }
+  return { counts, n };
+}
+
+export function habitDayCount(completions: HabitCompletion[], habitId: string) {
+  const set = new Set<string>();
+  for (const c of completions) {
+    if (c.habitId === habitId && c.count > 0) set.add(c.date);
+  }
+  return set.size;
 }

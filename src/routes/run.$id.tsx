@@ -1,11 +1,13 @@
+import { Plant } from "@/components/plant";
 import { TimerRing } from "@/components/timer-ring";
 import { Button, Card, Field, Switch } from "@/components/ui";
 import { useNow } from "@/hooks/use-now";
 import { NOISE_LABELS, startNoise, stopNoise } from "@/lib/audio";
 import { remainingMs, useAppStore } from "@/lib/store";
-import { formatClock, formatDuration } from "@/lib/utils";
-import type { NoiseId, RingColor } from "@/lib/types";
-import { RING_HEX } from "@/lib/types";
+import { currentStreak, plantStage } from "@/lib/stats";
+import { cn, formatClock, formatDuration } from "@/lib/utils";
+import type { Mood, NoiseId, RingColor } from "@/lib/types";
+import { MOOD_META, RING_HEX } from "@/lib/types";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Check, ChevronDown, Pause, Play, SkipForward, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -32,9 +34,11 @@ function RunPage() {
   const [customize, setCustomize] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
   const [listOpen, setListOpen] = useState(false);
+  const [flash, setFlash] = useState(false);
 
   const startedFor = useRef<string | null>(null);
   const autoFired = useRef<number | null>(null);
+  const prevStep = useRef<number | null>(null);
 
   useEffect(() => {
     if (!routine) return;
@@ -66,6 +70,21 @@ function RunPage() {
       void lock?.release();
     };
   }, [session?.status]);
+
+  useEffect(() => {
+    if (!session) return;
+    if (prevStep.current === null) {
+      prevStep.current = session.stepIndex;
+      return;
+    }
+    if (prevStep.current !== session.stepIndex && session.status !== "done") {
+      setFlash(true);
+      const t = window.setTimeout(() => setFlash(false), 420);
+      prevStep.current = session.stepIndex;
+      return () => window.clearTimeout(t);
+    }
+    prevStep.current = session.stepIndex;
+  }, [session?.stepIndex, session?.status, session]);
 
   const remain = session ? remainingMs(session, now) : 0;
 
@@ -118,6 +137,7 @@ function RunPage() {
   const progress = 1 - remain / planned;
   const overtime = remain < 0;
   const paused = session.status === "paused";
+  const stepKey = `${session.stepIndex}-${step?.id ?? ""}`;
 
   return (
     <main className="flex min-h-dvh flex-col px-5 pt-4 pb-6">
@@ -125,7 +145,7 @@ function RunPage() {
         <button
           type="button"
           aria-label="Close"
-          className="flex size-11 items-center justify-center rounded-full bg-sunken"
+          className="flex size-11 items-center justify-center rounded-full bg-sunken transition-transform active:scale-95"
           onClick={() => {
             abortRun();
             void navigate({ to: "/routine/$id", params: { id } });
@@ -142,18 +162,32 @@ function RunPage() {
         </button>
       </div>
 
-      <div className="mt-6 text-center">
+      <div key={stepKey} className="mt-6 animate-step-in text-center">
         <div className="text-sm text-muted">
-          {session.stepIndex + 1} / {routine.steps.length} · {routine.name}
+          Step {session.stepIndex + 1} of {routine.steps.length} · {routine.name}
         </div>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">{step?.title}</h1>
         {step?.note ? <p className="mt-1 text-sm text-muted">{step.note}</p> : null}
+        {flash ? (
+          <p className="mt-2 text-xs font-semibold tracking-wide text-mint uppercase">
+            Next step
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center">
-        <button type="button" onClick={() => setAdjustOpen(true)}>
+        <button
+          type="button"
+          onClick={() => setAdjustOpen(true)}
+          className={cn(flash && "animate-ring-glow")}
+        >
           <TimerRing progress={progress} color={settings.ringColor} size={268}>
-            <span className="text-4xl">{step?.emoji}</span>
+            <span
+              key={`emoji-${stepKey}`}
+              className="animate-step-in text-4xl"
+            >
+              {step?.emoji}
+            </span>
             <span
               className={`mt-2 text-5xl font-semibold tabular-nums tracking-tight ${
                 overtime ? "text-coral" : ""
@@ -168,11 +202,28 @@ function RunPage() {
         </button>
       </div>
 
+      {/* Step progress dots */}
+      <div className="mb-4 flex justify-center gap-1.5" aria-hidden>
+        {routine.steps.map((s, i) => (
+          <span
+            key={s.id}
+            className={cn(
+              "h-1.5 rounded-full transition-all",
+              i < session.stepIndex
+                ? "w-1.5 bg-mint"
+                : i === session.stepIndex
+                  ? "w-4 bg-sun"
+                  : "w-1.5 bg-sunken",
+            )}
+          />
+        ))}
+      </div>
+
       <div className="flex items-center justify-center gap-6">
         <button
           type="button"
           aria-label={paused ? "Resume" : "Pause"}
-          className="flex size-14 items-center justify-center rounded-full bg-sunken"
+          className="flex size-14 items-center justify-center rounded-full bg-sunken transition-transform active:scale-95"
           onClick={() => (paused || session.status === "overtime" ? resumeRun() : pauseRun())}
         >
           {paused ? <Play className="size-6 fill-current" /> : <Pause className="size-6" />}
@@ -180,7 +231,7 @@ function RunPage() {
         <button
           type="button"
           aria-label="Complete step"
-          className="flex size-[4.5rem] items-center justify-center rounded-full bg-fg text-bg"
+          className="flex size-[4.5rem] items-center justify-center rounded-full bg-fg text-bg shadow-card transition-transform active:scale-95"
           onClick={() => completeStep()}
         >
           <Check className="size-8" strokeWidth={2.5} />
@@ -188,7 +239,7 @@ function RunPage() {
         <button
           type="button"
           aria-label="Skip"
-          className="flex size-14 items-center justify-center rounded-full bg-sunken"
+          className="flex size-14 items-center justify-center rounded-full bg-sunken transition-transform active:scale-95"
           onClick={() => skipStep()}
         >
           <SkipForward className="size-6" />
@@ -196,8 +247,17 @@ function RunPage() {
       </div>
 
       {settings.timerShowNext ? (
-        <p className="mt-5 text-center text-sm text-muted">
-          {next ? `Up next: ${next.title}` : "Last step"}
+        <p
+          key={`next-${stepKey}`}
+          className="mt-5 animate-step-in text-center text-sm text-muted"
+        >
+          {next ? (
+            <>
+              Up next: <span className="font-medium text-fg">{next.emoji} {next.title}</span>
+            </>
+          ) : (
+            "Last step — finish strong"
+          )}
         </p>
       ) : (
         <div className="mt-5" />
@@ -345,13 +405,48 @@ function RunPage() {
   );
 }
 
+function ConfettiLite() {
+  const bits = useMemo(
+    () =>
+      Array.from({ length: 18 }, (_, i) => ({
+        id: i,
+        left: 20 + ((i * 37) % 60),
+        delay: (i % 6) * 0.05,
+        color: ["#f5c400", "#2f9e6b", "#4d8fe8", "#e86a4d", "#62c57a"][i % 5],
+        rot: (i * 47) % 360,
+      })),
+    [],
+  );
+  return (
+    <div className="confetti-burst" aria-hidden>
+      {bits.map((b) => (
+        <span
+          key={b.id}
+          style={{
+            left: `${b.left}%`,
+            background: b.color,
+            animationDelay: `${b.delay}s`,
+            transform: `rotate(${b.rot}deg)`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function DoneReport({ onHome }: { onHome: () => void }) {
   const session = useAppStore((s) => s.session);
   const routine = useAppStore((s) =>
     s.routines.find((r) => r.id === session?.routineId),
   );
   const completions = useAppStore((s) => s.completions);
+  const plantName = useAppStore((s) => s.settings.plantName || "Sprout");
+  const setMood = useAppStore((s) => s.setCompletionMood);
   const last = completions[0];
+  const streak = currentStreak(completions);
+  const plant = plantStage(streak);
+  const [picked, setPicked] = useState<Mood | null>(last?.mood ?? null);
+
   const rows = useMemo(() => {
     if (!routine || !session) return [];
     return routine.steps.map((s, i) => {
@@ -364,11 +459,25 @@ function DoneReport({ onHome }: { onHome: () => void }) {
 
   if (!routine || !last) return null;
 
+  function chooseMood(m: Mood) {
+    setPicked(m);
+    setMood(last.id, m);
+  }
+
   return (
-    <main className="px-5 pt-10 pb-8">
-      <p className="text-sm text-mint">Great job today</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight">{routine.name}</h1>
-      <div className="mt-4 grid grid-cols-2 gap-2">
+    <main className="relative px-5 pt-10 pb-8">
+      <ConfettiLite />
+      <div className="animate-celebrate-pop relative flex flex-col items-center text-center">
+        <Plant level={plant.level} size={96} celebrate />
+        <p className="mt-3 text-sm font-medium text-mint">Routine complete</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{routine.name}</h1>
+        <p className="mt-1 text-sm text-muted">
+          {plantName} is a <span className="font-medium text-fg">{plant.name}</span>
+          {streak > 0 ? ` · ${streak}d streak` : ""}
+        </p>
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-2">
         <Card className="p-4">
           <div className="text-xs text-muted">Total</div>
           <div className="text-xl font-semibold tabular-nums">
@@ -382,6 +491,35 @@ function DoneReport({ onHome }: { onHome: () => void }) {
           </div>
         </Card>
       </div>
+
+      <Card className="mt-5 p-4">
+        <p className="text-sm font-medium">How do you feel?</p>
+        <p className="mt-0.5 text-xs text-muted">Saved with this run — shows up on Stats.</p>
+        <div className="mt-3 flex justify-center gap-3">
+          {(Object.keys(MOOD_META) as Mood[]).map((m) => {
+            const meta = MOOD_META[m];
+            const on = picked === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                aria-label={meta.label}
+                aria-pressed={on}
+                onClick={() => chooseMood(m)}
+                className={cn(
+                  "flex size-14 flex-col items-center justify-center rounded-2xl text-2xl transition-all active:scale-95",
+                  on
+                    ? "bg-sun text-sun-ink ring-2 ring-sun ring-offset-2 ring-offset-bg"
+                    : "bg-sunken hover:bg-border",
+                )}
+              >
+                <span>{meta.emoji}</span>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
       <div className="mt-5 space-y-2">
         {rows.map(({ s, actual, planned, skipped }) => {
           const delta = Math.round((actual - planned) / 1000);
@@ -404,7 +542,7 @@ function DoneReport({ onHome }: { onHome: () => void }) {
           );
         })}
       </div>
-      <Button className="mt-6 w-full" size="pill" onClick={onHome}>
+      <Button className="mt-6 w-full" size="pill" variant="sun" onClick={onHome}>
         Back to today
       </Button>
     </main>

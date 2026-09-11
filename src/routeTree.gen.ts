@@ -10,7 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ChallengeRouteImport } from './routes/challenge'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as ForgeRouteImport } from './routes/forge'
+import { Route as HabitsRouteImport } from './routes/habits'
+import { Route as MoodRouteImport } from './routes/mood'
 import { Route as RemindersRouteImport } from './routes/reminders'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as YouRouteImport } from './routes/you'
@@ -22,9 +26,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChallengeRoute = ChallengeRouteImport.update({
+  id: '/challenge',
+  path: '/challenge',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgeRoute = ForgeRouteImport.update({
+  id: '/forge',
+  path: '/forge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HabitsRoute = HabitsRouteImport.update({
+  id: '/habits',
+  path: '/habits',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoodRoute = MoodRouteImport.update({
+  id: '/mood',
+  path: '/mood',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RemindersRoute = RemindersRouteImport.update({
@@ -55,7 +79,11 @@ const RunIdRoute = RunIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/challenge': typeof ChallengeRoute
   '/explore': typeof ExploreRoute
+  '/forge': typeof ForgeRoute
+  '/habits': typeof HabitsRoute
+  '/mood': typeof MoodRoute
   '/reminders': typeof RemindersRoute
   '/stats': typeof StatsRoute
   '/you': typeof YouRoute
@@ -64,7 +92,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/challenge': typeof ChallengeRoute
   '/explore': typeof ExploreRoute
+  '/forge': typeof ForgeRoute
+  '/habits': typeof HabitsRoute
+  '/mood': typeof MoodRoute
   '/reminders': typeof RemindersRoute
   '/stats': typeof StatsRoute
   '/you': typeof YouRoute
@@ -74,7 +106,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/challenge': typeof ChallengeRoute
   '/explore': typeof ExploreRoute
+  '/forge': typeof ForgeRoute
+  '/habits': typeof HabitsRoute
+  '/mood': typeof MoodRoute
   '/reminders': typeof RemindersRoute
   '/stats': typeof StatsRoute
   '/you': typeof YouRoute
@@ -85,7 +121,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/challenge'
     | '/explore'
+    | '/forge'
+    | '/habits'
+    | '/mood'
     | '/reminders'
     | '/stats'
     | '/you'
@@ -94,7 +134,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/challenge'
     | '/explore'
+    | '/forge'
+    | '/habits'
+    | '/mood'
     | '/reminders'
     | '/stats'
     | '/you'
@@ -103,7 +147,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/challenge'
     | '/explore'
+    | '/forge'
+    | '/habits'
+    | '/mood'
     | '/reminders'
     | '/stats'
     | '/you'
@@ -113,7 +161,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChallengeRoute: typeof ChallengeRoute
   ExploreRoute: typeof ExploreRoute
+  ForgeRoute: typeof ForgeRoute
+  HabitsRoute: typeof HabitsRoute
+  MoodRoute: typeof MoodRoute
   RemindersRoute: typeof RemindersRoute
   StatsRoute: typeof StatsRoute
   YouRoute: typeof YouRoute
@@ -130,11 +182,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/challenge': {
+      id: '/challenge'
+      path: '/challenge'
+      fullPath: '/challenge'
+      preLoaderRoute: typeof ChallengeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/explore': {
       id: '/explore'
       path: '/explore'
       fullPath: '/explore'
       preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forge': {
+      id: '/forge'
+      path: '/forge'
+      fullPath: '/forge'
+      preLoaderRoute: typeof ForgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/habits': {
+      id: '/habits'
+      path: '/habits'
+      fullPath: '/habits'
+      preLoaderRoute: typeof HabitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mood': {
+      id: '/mood'
+      path: '/mood'
+      fullPath: '/mood'
+      preLoaderRoute: typeof MoodRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reminders': {
@@ -177,7 +257,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChallengeRoute: ChallengeRoute,
   ExploreRoute: ExploreRoute,
+  ForgeRoute: ForgeRoute,
+  HabitsRoute: HabitsRoute,
+  MoodRoute: MoodRoute,
   RemindersRoute: RemindersRoute,
   StatsRoute: StatsRoute,
   YouRoute: YouRoute,

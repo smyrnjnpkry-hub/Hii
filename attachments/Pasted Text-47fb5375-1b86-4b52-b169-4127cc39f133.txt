@@ -1,0 +1,168 @@
+You are a senior game designer + product designer + ACT/CBT clinician.
+
+Take the “Reset Path” recovery app (porn + compulsive masturbation habit change) and GAMIFY THE ENTIRE PROCESS without making it shame-based, casino-like, or streak-hostage.
+
+GOAL
+Make recovery feel like a single-player RPG with optional co-op: the user levels up by practicing skills (urge surfing, values action, environment design), not by being “pure.” Abstinence is one quest line, not the only scoreboard.
+
+NON-NEGOTIABLE DESIGN LAWS
+1. Reward BEHAVIOR and SKILL, not moral purity.
+   - Highest XP: completed urge-surf, logged a trigger honestly, did a replacement action, journaled a values move, locked the environment, helped a teammate.
+   - Medium XP: clean day, daily check-in, lesson finished.
+   - Lowest / zero XP: just opening the app.
+2. Never punish a slip with identity damage.
+   - A slip does NOT delete levels, titles, tree growth, or total XP.
+   - A slip starts a Recovery Quest, not a “you failed” screen.
+   - Never show “0 days” as the hero number. Always show Total Clean Days + Skills Mastered + Current Chapter.
+3. Streaks are capped and recoverable.
+   - Display a 7-day Cycle, not an infinite anxiety streak.
+   - Completing a 7-day cycle stamps a Week Seal. Counter resets to Day 1 of next cycle. History of seals is the real record.
+   - Streak Shields: earned (never bought). 1 shield every 7 completed cycles or after 5 successful urge-surfs. Using a shield keeps the cycle intact after a miss.
+   - Grace window: if they check in within 18 hours of the usual time, cycle continues.
+4. No pay-to-win, no monetized guilt, no “buy a streak freeze.”
+5. Optional social only. Default is private. Leaderboards never rank “days clean.” They can rank “quests completed this week” or “urge-surfs completed” if the user opts in.
+6. Tone: competent coach + game master. Adult, dry-warm, no “warrior purity,” no religious framing unless the user chooses a theme pack.
+7. Dopamine design must compete with porn WITHOUT becoming another compulsive loop. Variable rewards are small and skill-tied. No loot-box spinning, no infinite scroll feed.
+
+CORE METAPHOR
+“Rewire” — the player is restoring a living system (neural garden / signal tower / inner city), not collecting chastity points.
+
+Visual: a living map that grows as skills are practiced.
+- Fog of war lifts as they complete education modules.
+- Paths light up when they surf urges.
+- A garden / tree / city district grows from ACTIONS, not from an unbroken streak. A slip wilts one leaf for 24 hours, then recovers if they do the Recovery Quest. The tree never dies.
+
+PLAYER FANTASY
+“I am becoming someone who can feel an urge and still choose my life.”
+
+PLAYER LOOP (daily, 3–8 minutes unless SOS)
+1. Morning Briefing (30–60s): today’s 3 Daily Quests + one optional Side Quest.
+2. Live the day.
+3. If urge hits → SOS mini-game (Urge Surf).
+4. Evening Debrief: check-in, loot XP, see map grow, next unlock tease.
+
+PROGRESSION SYSTEMS
+
+A. XP & Levels (always accumulating)
+Sources of XP (tune numbers):
+- Daily check-in: 10
+- Finish today’s lesson (3–8 min): 25
+- Complete a replacement action: 20
+- Honest urge log (acted or not): 15
+- Full Urge Surf protocol completed: 40
+- Environment lock (blocker on, phone out of bedroom, night lock): 15
+- Values action (text a friend, gym, walk, create): 30
+- Recovery Quest after slip: 50 (must be the highest single reward so restart feels like a win)
+- 7-day Cycle seal: 100
+Level titles tied to SKILL, not days:
+  L1 Spark → L2 Cartographer (mapped triggers) → L3 Surfer → L4 Architect (environment) → L5 Compass (values) → L6 Steward → L7 Signal → L8 Unhooked
+Unlock cosmetics and tools by level, not by perfect abstinence.
+
+B. Three parallel meters (Apple Rings style, but kinder)
+1. Presence — check-ins, journaling, lessons
+2. Mastery — urge-surfs, defusion drills, CBT thought records
+3. Life — exercise, sleep, social, creative, time outdoors
+Closing all 3 rings stamps the day. Missing one ring does not zero the others.
+
+C. Quests
+Daily Quests (always 3, one from each meter). Examples:
+- “Surf or delay one urge for 10 minutes”
+- “Write 2 sentences: what was I actually needing?”
+- “10 minutes walk or 20 bodyweight reps”
+- “Phone charges outside bedroom tonight”
+Weekly Boss Quests (choose 1):
+- Map Top 3 triggers from 14 days of logs
+- 3 social contacts
+- 4 workouts
+- Full environment lockdown audit
+Chapter Quests (story):
+  Chapter 1 The Map (days 1–7): education + trigger cartography
+  Chapter 2 The Wave (days 8–21): urge surfing mastery
+  Chapter 3 The Room (days 22–35): stimulus control
+  Chapter 4 The Compass (days 36–56): ACT values + committed action
+  Chapter 5 The City (days 57–90): identity + relapse prevention
+  Epilogue Open World: maintenance, seasonal events, skill trees
+Each chapter ends with a short “boss”: a synthesized high-risk scenario they plan for in-app.
+
+D. Recovery Quest (the most important game design)
+On slip:
+- No red FAIL splash. Screen title: “The wave hit. Time to rebuild the levee.”
+- 3-step quest (10–15 min):
+  1. Debrief: when, where, emotion, 10 minutes before (HALT + trigger)
+  2. One system change (move charger, add night lock, delete an account, schedule morning workout)
+  3. One values action in the next 2 hours
+- Completing it grants a large XP bonus + a “Kintsugi” badge (gold seam on the map).
+- Current 7-day cycle may break; Week Seals, level, tree, and total clean days stay.
+- Offer a Shield if they have one. Using it is framed as strategy, not cheating.
+
+E. Urge Surf = the combat system
+This is the game’s real-time encounter.
+Flow:
+1. Panic / Encounter button
+2. Name the enemy: “Urge — intensity X/10 — source: boredom / night / loneliness…”
+3. 90-second grounding (breath + body scan) — a “stance” mini-game, not a cartoon fight
+4. Ride the wave: intensity slider every 60s for 8–12 min, visualized as a wave they stay on top of
+5. Choose a Finisher: leave room / cold water / 20 reps / text ally / values reminder
+6. Loot: XP + a drop (insight card: “Night + isolation is your elite mob”)
+Never show porn, never use sexy imagery, never use the user’s camera to shame their face.
+
+F. Inventory (earned, not purchased)
+- Streak Shields
+- Night Lantern (auto reminder at user’s high-risk hour)
+- Blueprint cards (environment changes)
+- Companion phrases (user-written “why” lines that appear mid-surf)
+- Theme packs: Monastery, Cyberpunk City, Forest, Quiet Lab (visual only)
+
+G. Optional co-op (off by default)
+- Party of 2–5. Shared weekly boss: “collect 20 Mastery points as a team.”
+- Help tokens: send a “surf with me” ping. No public slip feed.
+- No ranking of abstinence. If a board exists, it is “quests finished” or “rings closed.”
+- Clans by interest (gym, students, partners, night-shift) not by ideology unless user opts in.
+
+H. Anti-shame UX details
+- Hero stats on home: Level, Week Seals, Total Clean Days, Urges Surfed, Recovery Quests completed.
+- Current cycle shown as 7 dots, not “Day 47 or die.”
+- After day 60 of stable practice, graduate the user: daily streak pressure drops; weekly seals + seasonal challenges remain. Habit is becoming identity.
+- Notifications: “Your high-risk window starts in 20 minutes. Lantern is on.” Never “Don’t you dare.”
+
+NARRATIVE & COPY RULES
+- You are the Game Master of their nervous system, not a priest.
+- Copy examples:
+  Slip: “Data acquired. The map just got more accurate.”
+  Surf success: “You stayed on the board. The wave is smaller than it felt.”
+  Week seal: “Seven days of choosing. Stamp earned.”
+- Ban: “You’ve ruined it,” “addict,” “gooner,” “defeat,” countdown-to-zero shame, sexualized avatars, loot boxes.
+
+CONTENT THAT GETS GAMIFIED (keep the clinical spine)
+Wrap the original 90-day CBT/ACT curriculum as Chapters and side-quests:
+- Psychoeducation → lore drops
+- Trigger log → cartography skill tree
+- Cognitive defusion → “Untangle” mini-game (label thought vs fact)
+- Values → Compass relic they rewrite monthly
+- Stimulus control → Architect skill
+- Relapse prevention → City walls
+Every lesson ends with a 1-tap quest, not a lecture only.
+
+ANALYTICS THE GAME SHOULD USE
+After 14 logs, spawn a “Boss Intel” card:
+“80% of encounters happen 22:00–01:00, alone, phone in bed, after scrolling. Recommended quest: Night Lock + charger exile.”
+This card IS the loot. Make pattern-insight feel like finding the enemy’s weakness.
+
+TECH / PRODUCT NOTES FOR BUILDERS
+- Home screen: map fragment + 3 rings + 3 daily quests + giant SOS button.
+- Widget: SOS + today’s cycle dots.
+- Local-first progress so a missed server doesn’t break the game.
+- Accessibility: low-stimulation mode that strips particles but keeps XP and quests.
+- Monetization: full game loop free through Chapter 2. Subscribe for Chapters 3–5, AI GM, party, extra themes. Never sell Shields.
+
+DELIVERABLES
+Produce:
+1. Game design document (core loop, economy, progression, Recovery Quest, Urge combat).
+2. Home, SOS, slip, and week-seal screen copy.
+3. XP table and level curve for 90 days.
+4. 14-day onboarding quest list (day-by-day).
+5. Badge/title list with unlock rules (skill-based).
+6. What we explicitly will NOT gamify (shame, camera humiliation, abstinence leaderboards, paid streak saves).
+7. Edge cases: user wants harm reduction not full abstinence; user has a partner; user is in a flatline; user binge-slips 3 days.
+
+Design this so a person at 1 a.m. opens it because the encounter system helps them survive the next 12 minutes — not because they are terrified of losing Day 63.

@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "ForgeHealth",
+      "hasCanvas": false,
+      "bodyTextLen": 121,
+      "bodyTextHash": "0876f4fdaf2c531febf03f694cdab7f0440894300c1a76bbfe02d20ce189ee97",
+      "bodyTextPrefix": "Welcome to ForgeHealth Name your plant It grows with your streak",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "ForgeHealth",
+      "hasCanvas": false,
+      "bodyTextLen": 121,
+      "bodyTextHash": "0876f4fdaf2c531febf03f694cdab7f0440894300c1a76bbfe02d20ce189ee97",
+      "bodyTextPrefix": "Welcome to ForgeHealth Name your plant It grows with your streak",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

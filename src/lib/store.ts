@@ -6,6 +6,7 @@ import { speak } from "@/lib/tts";
 import type {
   Completion,
   InAppAlert,
+  Mood,
   Routine,
   RoutineReminder,
   RunSession,
@@ -13,8 +14,23 @@ import type {
   StandaloneReminder,
   Step,
   Template,
+  Account,
+  Challenge,
+  Habit,
+  HabitCompletion,
+  MoodEntry,
+  GratitudeEntry,
+  MonsterBoss,
+  UnstickSession,
+  WoopCard,
+  TinyRecipe,
+  AutomaticityRating,
+  ProcrastinationProfile,
+  AversionTag,
+  ProcrastinationStyle,
 } from "@/lib/types";
-import { DEFAULT_SETTINGS } from "@/lib/types";
+import { DEFAULT_SETTINGS, DEFAULT_HABITS } from "@/lib/types";
+import { TEMPLATES } from "@/lib/templates";
 import { todayKey, uid } from "@/lib/utils";
 
 export type Checks = Record<string, string[]>;
@@ -29,6 +45,19 @@ type PersistShape = {
   alerts: InAppAlert[];
   firedKeys: string[];
   hasSeeded: boolean;
+  // ForgeHealth state
+  account: Account | null;
+  challenge: Challenge | null;
+  habits: Habit[];
+  habitCompletions: HabitCompletion[];
+  moodEntries: MoodEntry[];
+  gratitudeEntries: GratitudeEntry[];
+  monster: MonsterBoss | null;
+  unsticks: UnstickSession[];
+  woops: WoopCard[];
+  recipes: TinyRecipe[];
+  autoRatings: AutomaticityRating[];
+  procrastination: ProcrastinationProfile | null;
 };
 
 type AppState = PersistShape & {
@@ -59,6 +88,40 @@ type AppState = PersistShape & {
   dismissAlert: (id: string) => void;
   pushAlert: (alert: Omit<InAppAlert, "id" | "createdAt">) => void;
   markFired: (key: string) => void;
+  completeOnboarding: (plantName: string, templateIds: string[]) => void;
+  setCompletionMood: (completionId: string, mood: Mood) => void;
+  // ForgeHealth actions
+  setAccount: (account: Account) => void;
+  startChallenge: (durationDays: number, buddyEmail?: string) => void;
+  checkInChallenge: () => void;
+  recordRelapse: (note?: string) => void;
+  addXp: (amount: number) => void;
+  adjustWillpower: (delta: number) => void;
+  addHabit: (habit: Omit<Habit, "id" | "createdAt">) => void;
+  toggleHabit: (habitId: string) => void;
+  deleteHabit: (habitId: string) => void;
+  completeHabit: (habitId: string, count?: number) => void;
+  addMoodEntry: (entry: Omit<MoodEntry, "id" | "timestamp">) => void;
+  updateMoodEntry: (id: string, patch: Partial<MoodEntry>) => void;
+  deleteMoodEntry: (id: string) => void;
+  addGratitude: (text: string) => void;
+  spawnMonster: () => void;
+  damageMonster: (damage: number) => void;
+  ensureDefaultHabits: () => void;
+  saveUnstick: (u: {
+    task: string;
+    aversion: AversionTag;
+    firstAction: string;
+    reward: string;
+  }) => string;
+  finishUnstick: (id: string, completed: boolean, durationSec: number) => void;
+  addWoop: (w: Omit<WoopCard, "id" | "createdAt">) => void;
+  deleteWoop: (id: string) => void;
+  addRecipe: (r: Omit<TinyRecipe, "id" | "createdAt" | "lastDoneDate" | "doneCount">) => void;
+  completeRecipe: (id: string) => void;
+  deleteRecipe: (id: string) => void;
+  rateAutomaticity: (habitId: string, score: number) => void;
+  setProcrastination: (style: ProcrastinationStyle) => void;
 };
 
 function checkKey(date: string, routineId: string) {
@@ -119,13 +182,27 @@ export const useAppStore = create<AppState>()(
       firedKeys: [],
       hasSeeded: false,
       hydrated: false,
+      // ForgeHealth initial state
+      account: null,
+      challenge: null,
+      habits: [],
+      habitCompletions: [],
+      moodEntries: [],
+      gratitudeEntries: [],
+      monster: null,
+      unsticks: [],
+      woops: [],
+      recipes: [],
+      autoRatings: [],
+      procrastination: null,
 
       setHydrated: () => set({ hydrated: true }),
 
       seedIfNeeded: () => {
         if (get().hasSeeded) return;
+        // First-run: reminders only. Routines come from onboarding picks.
         set({
-          routines: seedRoutines(),
+          routines: [],
           reminders: seedReminders(),
           hasSeeded: true,
         });
@@ -448,9 +525,404 @@ export const useAppStore = create<AppState>()(
           const kept = s.firedKeys.filter((k) => k.startsWith(today) || k.includes(today));
           return { firedKeys: [...kept, key].slice(-200) };
         }),
+
+      completeOnboarding: (plantName, templateIds) => {
+        const picked = templateIds
+          .map((id) => TEMPLATES.find((t) => t.id === id))
+          .filter((t): t is Template => Boolean(t))
+          .map((t) => templateToRoutine(t));
+        const fallback = picked.length > 0 ? picked : seedRoutines().slice(0, 2);
+        set((s) => ({
+          routines: [
+            ...fallback,
+            ...s.routines.filter((r) => !r.id.startsWith("seed-")),
+          ],
+          reminders: s.reminders.length ? s.reminders : seedReminders(),
+          habits:
+            s.habits.length > 0
+              ? s.habits
+              : DEFAULT_HABITS.map((h) => ({ ...h, id: uid(), createdAt: Date.now() })),
+          recipes:
+            s.recipes.length > 0
+              ? s.recipes
+              : [
+                  {
+                    id: uid(),
+                    createdAt: Date.now(),
+                    anchor: "I sit at my desk",
+                    behavior: "open the stuck task for two minutes",
+                    celebration: "say 'started'",
+                    lastDoneDate: null,
+                    doneCount: 0,
+                  },
+                ],
+          hasSeeded: true,
+          settings: {
+            ...s.settings,
+            plantName: plantName.trim() || "Sprout",
+            onboardingDone: true,
+          },
+        }));
+      },
+
+      setCompletionMood: (completionId, mood) =>
+        set((s) => ({
+          completions: s.completions.map((c) =>
+            c.id === completionId ? { ...c, mood } : c,
+          ),
+        })),
+
+      // ForgeHealth actions
+      setAccount: (account) => {
+        // Save current state before switching
+        const currentAccount = get().account;
+        if (currentAccount) {
+          const key = `forgehealth-${currentAccount.id}`;
+          localStorage.setItem(key, JSON.stringify(get()));
+        }
+        
+        // Load new account state
+        const newKey = `forgehealth-${account.id}`;
+        const stored = localStorage.getItem(newKey);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            set({ ...parsed, account, hydrated: true });
+            return;
+          } catch {}
+        }
+        
+        // New account - set with defaults
+        set({ account });
+      },
+
+      startChallenge: (durationDays, buddyEmail) => {
+        const account = get().account;
+        if (!account) return;
+        const challenge: Challenge = {
+          id: uid(),
+          accountId: account.id,
+          buddyEmail,
+          status: "active",
+          startDate: todayKey(),
+          durationDays,
+          agreedAt: Date.now(),
+          lastCheckIn: todayKey(),
+          currentStreak: 0,
+          longestStreak: 0,
+          relapses: [],
+          xp: 0,
+          willpower: 100,
+        };
+        set((s) => ({
+          challenge,
+          habits:
+            s.habits.length > 0
+              ? s.habits
+              : DEFAULT_HABITS.map((h) => ({ ...h, id: uid(), createdAt: Date.now() })),
+        }));
+        if (typeof BroadcastChannel !== "undefined") {
+          const bc = new BroadcastChannel("forgehealth-challenge");
+          bc.postMessage({ 
+            type: "challenge-started", 
+            accountId: account.id,
+            challenge 
+          });
+          bc.close();
+        }
+        // Save buddy snapshot to shared localStorage
+        if (buddyEmail) {
+          localStorage.setItem(`forgehealth-buddy-${account.id}`, JSON.stringify({
+            accountId: account.id,
+            email: account.email,
+            displayName: account.displayName,
+            challenge,
+            timestamp: Date.now()
+          }));
+        }
+      },
+
+      checkInChallenge: () => {
+        set((s) => {
+          if (!s.challenge || s.challenge.status !== "active") return s;
+          const today = todayKey();
+          if (s.challenge.lastCheckIn === today) return s;
+          const newStreak = s.challenge.currentStreak + 1;
+          const xpGain = 30;
+          const willpowerGain = 5;
+          const updatedChallenge = {
+            ...s.challenge,
+            lastCheckIn: today,
+            currentStreak: newStreak,
+            longestStreak: Math.max(newStreak, s.challenge.longestStreak),
+            xp: s.challenge.xp + xpGain,
+            willpower: Math.min(100, s.challenge.willpower + willpowerGain),
+          };
+          
+          // Broadcast to buddy
+          if (typeof BroadcastChannel !== "undefined" && s.account) {
+            const bc = new BroadcastChannel("forgehealth-challenge");
+            bc.postMessage({ 
+              type: "check-in", 
+              accountId: s.account.id,
+              challenge: updatedChallenge 
+            });
+            bc.close();
+            
+            // Update buddy snapshot
+            if (s.challenge.buddyEmail) {
+              localStorage.setItem(`forgehealth-buddy-${s.account.id}`, JSON.stringify({
+                accountId: s.account.id,
+                email: s.account.email,
+                displayName: s.account.displayName,
+                challenge: updatedChallenge,
+                timestamp: Date.now()
+              }));
+            }
+          }
+          
+          return { challenge: updatedChallenge };
+        });
+      },
+
+      recordRelapse: (note) => {
+        set((s) => {
+          if (!s.challenge || s.challenge.status !== "active") return s;
+          const relapse: import("@/lib/types").RelapseEntry = {
+            id: uid(),
+            date: todayKey(),
+            timestamp: Date.now(),
+            note,
+          };
+          const xpLoss = 50;
+          const willpowerLoss = 30;
+          return {
+            challenge: {
+              ...s.challenge,
+              currentStreak: 0,
+              relapses: [...s.challenge.relapses, relapse],
+              xp: Math.max(0, s.challenge.xp - xpLoss),
+              willpower: Math.max(0, s.challenge.willpower - willpowerLoss),
+            },
+          };
+        });
+      },
+
+      addXp: (amount) => {
+        set((s) => {
+          if (!s.challenge) return s;
+          return { challenge: { ...s.challenge, xp: s.challenge.xp + amount } };
+        });
+      },
+
+      adjustWillpower: (delta) => {
+        set((s) => {
+          if (!s.challenge) return s;
+          return {
+            challenge: {
+              ...s.challenge,
+              willpower: Math.max(0, Math.min(100, s.challenge.willpower + delta)),
+            },
+          };
+        });
+      },
+
+      addHabit: (habit) => {
+        const newHabit: Habit = { ...habit, id: uid(), createdAt: Date.now() };
+        set((s) => ({ habits: [...s.habits, newHabit] }));
+      },
+
+      toggleHabit: (habitId) => {
+        set((s) => ({
+          habits: s.habits.map((h) => (h.id === habitId ? { ...h, enabled: !h.enabled } : h)),
+        }));
+      },
+
+      deleteHabit: (habitId) => {
+        set((s) => ({
+          habits: s.habits.filter((h) => h.id !== habitId),
+          habitCompletions: s.habitCompletions.filter((hc) => hc.habitId !== habitId),
+        }));
+      },
+
+      completeHabit: (habitId, count = 1) => {
+        const habit = get().habits.find((h) => h.id === habitId);
+        if (!habit) return;
+        const today = todayKey();
+        const existing = get().habitCompletions.find(
+          (hc) => hc.habitId === habitId && hc.date === today
+        );
+        if (existing) {
+          set((s) => ({
+            habitCompletions: s.habitCompletions.map((hc) =>
+              hc.id === existing.id ? { ...hc, count: hc.count + count } : hc
+            ),
+          }));
+        } else {
+          const completion: HabitCompletion = {
+            id: uid(),
+            habitId,
+            date: today,
+            timestamp: Date.now(),
+            count,
+          };
+          set((s) => ({ habitCompletions: [...s.habitCompletions, completion] }));
+        }
+        get().addXp(habit.xpPerCompletion * count);
+        const monster = get().monster;
+        if (monster && monster.currentHp > 0) {
+          get().damageMonster(habit.xpPerCompletion * count);
+        }
+      },
+
+      addMoodEntry: (entry) => {
+        const newEntry: MoodEntry = { ...entry, id: uid(), timestamp: Date.now() };
+        set((s) => ({ moodEntries: [newEntry, ...s.moodEntries] }));
+      },
+
+      updateMoodEntry: (id, patch) => {
+        set((s) => ({
+          moodEntries: s.moodEntries.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+        }));
+      },
+
+      deleteMoodEntry: (id) => {
+        set((s) => ({ moodEntries: s.moodEntries.filter((m) => m.id !== id) }));
+      },
+
+      addGratitude: (text) => {
+        const entry: GratitudeEntry = {
+          id: uid(),
+          date: todayKey(),
+          timestamp: Date.now(),
+          text,
+        };
+        set((s) => ({ gratitudeEntries: [entry, ...s.gratitudeEntries] }));
+      },
+
+      spawnMonster: () => {
+        const level = Math.floor(Math.random() * 3) + 1;
+        const monsters = [
+          { name: "Temptation Beast", emoji: "👹" },
+          { name: "Urge Demon", emoji: "😈" },
+          { name: "Craving Dragon", emoji: "🐉" },
+        ];
+        const monster = monsters[Math.floor(Math.random() * monsters.length)];
+        const maxHp = 100 * level;
+        set({
+          monster: {
+            id: uid(),
+            name: monster.name,
+            emoji: monster.emoji,
+            maxHp,
+            currentHp: maxHp,
+            level,
+          },
+        });
+      },
+
+      damageMonster: (damage) => {
+        set((s) => {
+          if (!s.monster) return s;
+          const newHp = Math.max(0, s.monster.currentHp - damage);
+          if (newHp === 0) {
+            get().addXp(s.monster.maxHp);
+            return { monster: null };
+          }
+          return { monster: { ...s.monster, currentHp: newHp } };
+        });
+      },
+
+      ensureDefaultHabits: () => {
+        if (get().habits.length > 0) return;
+        set({
+          habits: DEFAULT_HABITS.map((h) => ({ ...h, id: uid(), createdAt: Date.now() })),
+        });
+      },
+
+      saveUnstick: ({ task, aversion, firstAction, reward }) => {
+        const session: UnstickSession = {
+          id: uid(),
+          createdAt: Date.now(),
+          date: todayKey(),
+          task: task.trim(),
+          aversion,
+          firstAction: firstAction.trim(),
+          reward: reward.trim(),
+          started: true,
+          completed: false,
+          durationSec: 0,
+        };
+        set((s) => ({ unsticks: [session, ...s.unsticks] }));
+        return session.id;
+      },
+
+      finishUnstick: (id, completed, durationSec) => {
+        set((s) => ({
+          unsticks: s.unsticks.map((u) =>
+            u.id === id ? { ...u, completed, durationSec, started: true } : u,
+          ),
+        }));
+        if (completed) {
+          get().addXp(20);
+          const startHabit = get().habits.find((h) => h.type === "start" && h.enabled);
+          if (startHabit) get().completeHabit(startHabit.id);
+        }
+      },
+
+      addWoop: (w) => {
+        const card: WoopCard = { ...w, id: uid(), createdAt: Date.now() };
+        set((s) => ({ woops: [card, ...s.woops] }));
+      },
+
+      deleteWoop: (id) => set((s) => ({ woops: s.woops.filter((w) => w.id !== id) })),
+
+      addRecipe: (r) => {
+        const recipe: TinyRecipe = {
+          ...r,
+          id: uid(),
+          createdAt: Date.now(),
+          lastDoneDate: null,
+          doneCount: 0,
+        };
+        set((s) => ({ recipes: [recipe, ...s.recipes] }));
+      },
+
+      completeRecipe: (id) => {
+        const today = todayKey();
+        set((s) => ({
+          recipes: s.recipes.map((r) =>
+            r.id === id && r.lastDoneDate !== today
+              ? { ...r, lastDoneDate: today, doneCount: r.doneCount + 1 }
+              : r,
+          ),
+        }));
+        get().addXp(10);
+      },
+
+      deleteRecipe: (id) => set((s) => ({ recipes: s.recipes.filter((r) => r.id !== id) })),
+
+      rateAutomaticity: (habitId, score) => {
+        const rating: AutomaticityRating = {
+          id: uid(),
+          habitId,
+          date: todayKey(),
+          score: Math.max(1, Math.min(7, score)),
+        };
+        set((s) => ({
+          autoRatings: [
+            rating,
+            ...s.autoRatings.filter((a) => !(a.habitId === habitId && a.date === rating.date)),
+          ],
+        }));
+      },
+
+      setProcrastination: (style) => {
+        set({ procrastination: { style, answeredAt: Date.now() } });
+      },
     }),
     {
-      name: "dayring-v1",
+      name: "forgehealth-v1",
       storage: createJSONStorage(() => localStorage),
       skipHydration: true,
       partialize: (s) => ({
@@ -463,7 +935,41 @@ export const useAppStore = create<AppState>()(
         alerts: s.alerts,
         firedKeys: s.firedKeys,
         hasSeeded: s.hasSeeded,
+        account: s.account,
+        challenge: s.challenge,
+        habits: s.habits,
+        habitCompletions: s.habitCompletions,
+        moodEntries: s.moodEntries,
+        gratitudeEntries: s.gratitudeEntries,
+        monster: s.monster,
+        unsticks: s.unsticks,
+        woops: s.woops,
+        recipes: s.recipes,
+        autoRatings: s.autoRatings,
+        procrastination: s.procrastination,
       }),
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<PersistShape>;
+        const settings = {
+          ...DEFAULT_SETTINGS,
+          ...(p.settings ?? {}),
+        };
+        // Legacy installs already had routines — skip onboarding once.
+        if (
+          !settings.onboardingDone &&
+          Array.isArray(p.routines) &&
+          p.routines.length > 0
+        ) {
+          settings.onboardingDone = true;
+          if (!settings.plantName) settings.plantName = "Sprout";
+        }
+        return {
+          ...current,
+          ...p,
+          settings,
+          hydrated: false,
+        };
+      },
     },
   ),
 );

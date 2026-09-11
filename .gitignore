@@ -1,9 +1,12 @@
 node_modules/
-dist/
-.vercel/
+.project_id
+.github_repo
 .env
 .env.*
-!.env.example
-.DS_Store
-*.log
+
+# local / build
+.vercel/
 .tanstack/
+.node_modules.lock
+dist/
+.grok/preview.log

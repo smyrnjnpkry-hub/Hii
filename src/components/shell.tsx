@@ -1,20 +1,22 @@
+import { Onboarding } from "@/components/onboarding";
 import { Plant } from "@/components/plant";
 import { Button } from "@/components/ui";
 import { useAppStore } from "@/lib/store";
 import { currentStreak, plantStage } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { BarChart3, Bell, Compass, House, User } from "lucide-react";
+import { BarChart3, Bell, Compass, Flame, House, User } from "lucide-react";
 import { useEffect } from "react";
 import { hydrateStore } from "@/lib/store";
 import { setMasterVolume, unlockAudio } from "@/lib/audio";
 import { unlockTts } from "@/lib/tts";
 
 const TABS = [
-  { to: "/", label: "Today", icon: House },
-  { to: "/explore", label: "Explore", icon: Compass },
-  { to: "/stats", label: "Stats", icon: BarChart3 },
-  { to: "/reminders", label: "Remind", icon: Bell },
+  { to: "/", label: "Home", icon: House },
+  { to: "/habits", label: "Habits", icon: BarChart3 },
+  { to: "/forge", label: "Forge", icon: Flame },
+  { to: "/challenge", label: "Challenge", icon: Compass },
+  { to: "/mood", label: "Mood", icon: Bell },
   { to: "/you", label: "You", icon: User },
 ] as const;
 
@@ -61,8 +63,8 @@ function Splash() {
         <div className="absolute right-[-6px] bottom-[-10px] size-[58px] rounded-full bg-bg" />
       </div>
       <div className="text-center">
-        <div className="text-xl font-semibold tracking-tight">Dayring</div>
-        <div className="text-sm text-muted">Start the day</div>
+        <div className="text-xl font-semibold tracking-tight">ForgeHealth</div>
+        <div className="text-sm text-muted">Build your strength</div>
       </div>
     </div>
   );
@@ -70,8 +72,9 @@ function Splash() {
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const hydrated = useAppStore((s) => s.hydrated);
+  const onboardingDone = useAppStore((s) => s.settings.onboardingDone);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const hideNav = pathname.startsWith("/run/");
+  const hideNav = pathname.startsWith("/run/") || !onboardingDone;
   const alerts = useAppStore((s) => s.alerts);
   const dismiss = useAppStore((s) => s.dismissAlert);
   const startRun = useAppStore((s) => s.startRun);
@@ -81,6 +84,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const plant = plantStage(streak);
 
   if (!hydrated) return <Splash />;
+  if (!onboardingDone) return <Onboarding />;
 
   return (
     <div className="min-h-dvh w-full bg-sunken">
@@ -141,11 +145,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                       active ? "text-fg" : "text-faint",
                     )}
                   >
-                    {tab.to === "/stats" ? (
-                      <Plant level={plant.level} size={22} />
-                    ) : (
-                      <Icon className="size-5" strokeWidth={active ? 2.4 : 2} />
-                    )}
+                    <Icon className="size-5" strokeWidth={active ? 2.4 : 2} />
                     {tab.label}
                   </Link>
                 );
