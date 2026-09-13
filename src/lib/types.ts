@@ -1,60 +1,293 @@
-export type SoundId =
-  | "chime"
-  | "bell"
-  | "ding"
-  | "wood"
-  | "beep"
-  | "success";
+export type Pillar =
+  | "spiritual"
+  | "physical"
+  | "intellectual"
+  | "relational"
+  | "emotional";
 
-export type NoiseId = "off" | "white" | "pink" | "brown" | "rain" | "fan";
+export type Season = "ordinary" | "hard";
+export type ThemeMode = "light" | "dark" | "system";
+export type Domain =
+  | "body"
+  | "craft"
+  | "mind"
+  | "people"
+  | "admin"
+  | "play";
 
-export type RingColor = "sun" | "mint" | "sky" | "coral" | "ink";
+export type SkillStage = "cognitive" | "associative" | "autonomous";
+export type UnlearnPhase = "awareness" | "active";
+export type MitStatus = "open" | "done" | "skipped";
+export type RunStatus = "running" | "paused" | "overtime" | "done";
+export type TaskPriority = 1 | 2 | 3 | 4;
+export type TaskRepeat = "none" | "daily" | "weekly" | "weekdays" | "monthly";
 
-export type Mood = "good" | "ok" | "low";
+export interface Scores {
+  spiritual: number;
+  physical: number;
+  intellectual: number;
+  relational: number;
+  emotional: number;
+}
 
-export type Step = {
+export interface CheckIn {
+  id: string;
+  date: string;
+  scores: Scores;
+  note: string;
+  actions: string[];
+}
+
+export interface EnvDesign {
+  obvious: boolean;
+  attractive: boolean;
+  easy: boolean;
+  satisfying: boolean;
+}
+
+export interface Habit {
+  id: string;
+  identity: string;
+  tinyAct: string;
+  fullAct: string;
+  pillar: Pillar;
+  cueRoutine: string;
+  cuePlace: string;
+  prompt: string;
+  daysOfWeek: number[];
+  reminder: string;
+  ritualNote: string;
+  keystone: boolean;
+  createdAt: string;
+  completions: { date: string; at: string }[];
+  misses: { date: string }[];
+  automaticity: { date: string; score: number }[];
+  shrinkHistory: string[];
+  env: EnvDesign;
+  kind: "habit" | "mvi";
+}
+
+export interface JournalEntry {
+  id: string;
+  date: string;
+  at: string;
+  template: string;
+  body: string;
+  pillar?: Pillar;
+}
+
+export interface Mit {
+  id: string;
+  title: string;
+  domain: Domain;
+  startCue: string;
+  due: string;
+  carriedFrom?: string;
+  status: MitStatus;
+  aversiveness: number;
+  feeling: string;
+  firstSlice: string;
+  reward: string;
+  expectancy: number;
+  value: number;
+  starts: { at: string; minutes: number }[];
+  woop?: { wish: string; outcome: string; obstacle: string; plan: string };
+  bundleWant: string;
+}
+
+export interface DomainPlan {
+  domain: Domain;
+  weeklyOutcome: string;
+  tinyAct: string;
+  killCriterion: string;
+}
+
+export interface WeeklyReview {
+  id: string;
+  weekOf: string;
+  cuesFired: string;
+  stalled: string;
+  friction: string;
+  identityVote: string;
+}
+
+export interface Subskill {
+  id: string;
+  name: string;
+  stage: SkillStage;
+}
+
+export interface PracticeSession {
+  id: string;
+  at: string;
+  subskillId: string;
+  target: string;
+  minutes: number;
+  difficulty: number;
+  easy: boolean;
+  feedback: string;
+  nextChange: string;
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  goodEnough: string;
+  test: string;
+  subskills: Subskill[];
+  sessions: PracticeSession[];
+  testScores: { at: string; score: number }[];
+}
+
+export interface CueMap {
+  time: string;
+  place: string;
+  preceding: string;
+  people: string;
+  emotion: string;
+  body: string;
+}
+
+export interface UrgeLog {
+  id: string;
+  at: string;
+  date: string;
+  place: string;
+  feeling: string;
+  acted: boolean;
+  surfed: boolean;
+}
+
+export interface BadHabit {
+  id: string;
+  name: string;
+  cue: CueMap;
+  payoff: string;
+  competingResponse: string;
+  replacement: string;
+  phase: UnlearnPhase;
+  clinical: boolean;
+  urgeLogs: UrgeLog[];
+  lapses: { at: string; cue: string; note: string }[];
+  friction: {
+    invisible: boolean;
+    unattractive: boolean;
+    difficult: boolean;
+    unsatisfying: boolean;
+  };
+}
+
+export interface AgencyValue {
+  name: string;
+  weeklyBehavior: string;
+  dont: string;
+}
+
+export interface ControlMap {
+  control: string[];
+  influence: string[];
+  dont: string[];
+}
+
+export interface DailyAgency {
+  date: string;
+  mit: string;
+  no: string;
+  envEdit: string;
+  votes: boolean[];
+}
+
+export interface FutureLetter {
+  id: string;
+  at: string;
+  body: string;
+}
+
+export interface ContextReview {
+  id: string;
+  at: string;
+  moments: { moment: string; redesign: string }[];
+}
+
+export interface Agency {
+  values: AgencyValue[];
+  identities: string[];
+  control: ControlMap;
+  daily: DailyAgency[];
+  letters: FutureLetter[];
+  reviews: ContextReview[];
+}
+
+export interface BrainDay {
+  date: string;
+  sleepHours: number;
+  wakeTime: string;
+  aerobicMin: number;
+  strength: boolean;
+  mindMeal: boolean;
+  social: string;
+  learnMin: number;
+  downshift: boolean;
+  drinks: number;
+  smoked: boolean;
+}
+
+export interface CheckupDates {
+  hearing: string;
+  vision: string;
+  clinician: string;
+}
+
+export interface Settings {
+  onboarded: boolean;
+  name: string;
+  reminderTime: string;
+  theme: ThemeMode;
+  reduceMotion: boolean;
+  season: Season;
+  lastAutoMissDate: string;
+}
+
+export interface InAppAlert {
+  id: string;
+  title: string;
+  body: string;
+  at: number;
+}
+
+export interface RoutineStep {
   id: string;
   title: string;
   emoji: string;
   durationSec: number;
   note?: string;
-};
+}
 
-export type RoutineReminder = {
-  id: string;
-  enabled: boolean;
-  minutesBefore: number;
-  sound: SoundId;
-};
-
-export type Routine = {
+export interface TimedRoutine {
   id: string;
   name: string;
   emoji: string;
-  steps: Step[];
+  steps: RoutineStep[];
   days: number[];
   startTime: string;
   anytime: boolean;
-  reminders: RoutineReminder[];
   enabled: boolean;
-  showIcons: boolean;
-  showDays: boolean;
-  showProgress: boolean;
   createdAt: number;
-};
+}
 
-export type StandaloneReminder = {
+export interface RoutineTemplate {
   id: string;
-  title: string;
+  name: string;
   emoji: string;
-  time: string;
+  blurb: string;
+  category: "morning" | "night" | "focus" | "body" | "reset" | "adhd";
+  startTime: string;
+  anytime?: boolean;
   days: number[];
-  enabled: boolean;
-  sound: SoundId;
-  note: string;
-};
+  steps: Omit<RoutineStep, "id">[];
+}
 
-export type Completion = {
+export interface RoutineCompletion {
   id: string;
   routineId: string;
   date: string;
@@ -64,13 +297,9 @@ export type Completion = {
   totalSteps: number;
   skippedSteps: number;
   durationSec: number;
-  stepActualMs: number[];
-  mood?: Mood;
-};
+}
 
-export type RunStatus = "running" | "paused" | "overtime" | "done";
-
-export type RunSession = {
+export interface RunSession {
   routineId: string;
   stepIndex: number;
   status: RunStatus;
@@ -80,325 +309,73 @@ export type RunSession = {
   skipped: number[];
   completed: number[];
   sessionStartedAt: number;
-  spoken: Record<string, boolean>;
-  stepActualMs: number[];
-};
+}
 
-export type Settings = {
-  displayName: string;
-  plantName: string;
-  onboardingDone: boolean;
-  theme: "light" | "dark";
-  voiceEnabled: boolean;
-  soundEnabled: boolean;
-  stepSound: SoundId;
-  completeSound: SoundId;
-  reminderSound: SoundId;
-  whiteNoise: NoiseId;
-  whiteNoiseVolume: number;
-  autoNext: boolean;
-  ringColor: RingColor;
-  timerShowNext: boolean;
-  timerShowAdjust: boolean;
-  volume: number;
-  notifyEnabled: boolean;
-  identity: string;
-};
-
-export type InAppAlert = {
-  id: string;
-  title: string;
-  body: string;
-  emoji: string;
-  routineId?: string;
-  createdAt: number;
-};
-
-export type Template = {
+export interface TaskProject {
   id: string;
   name: string;
-  emoji: string;
-  blurb: string;
-  category: "morning" | "night" | "focus" | "body" | "reset" | "adhd";
-  startTime: string;
-  anytime?: boolean;
-  days: number[];
-  steps: Omit<Step, "id">[];
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  notes: string;
+  projectId: string;
+  priority: TaskPriority;
+  dueDate: string;
+  reminder: string;
+  repeat: TaskRepeat;
+  completedAt: string | null;
+  createdAt: string;
+  carriedFrom?: string;
+}
+
+export const PILLARS: Pillar[] = [
+  "spiritual",
+  "physical",
+  "intellectual",
+  "relational",
+  "emotional",
+];
+
+export const DOMAINS: Domain[] = [
+  "body",
+  "craft",
+  "mind",
+  "people",
+  "admin",
+  "play",
+];
+
+export const EMPTY_SCORES: Scores = {
+  spiritual: 5,
+  physical: 5,
+  intellectual: 5,
+  relational: 5,
+  emotional: 5,
 };
 
 export const DEFAULT_SETTINGS: Settings = {
-  displayName: "",
-  plantName: "Sprout",
-  onboardingDone: false,
-  theme: "light",
-  voiceEnabled: true,
-  soundEnabled: true,
-  stepSound: "chime",
-  completeSound: "success",
-  reminderSound: "bell",
-  whiteNoise: "off",
-  whiteNoiseVolume: 0.22,
-  autoNext: true,
-  ringColor: "sun",
-  timerShowNext: true,
-  timerShowAdjust: true,
-  volume: 0.75,
-  notifyEnabled: false,
-  identity: "I am someone who starts, even when I do not feel like it.",
+  onboarded: false,
+  name: "",
+  reminderTime: "08:00",
+  theme: "system",
+  reduceMotion: false,
+  season: "ordinary",
+  lastAutoMissDate: "",
 };
 
-export const RING_HEX: Record<RingColor, string> = {
-  sun: "#f5c400",
-  mint: "#2f9e6b",
-  sky: "#4d8fe8",
-  coral: "#e86a4d",
-  ink: "#1a1a24",
+export const DEFAULT_CONTROL: ControlMap = {
+  control: ["The next two minutes", "Where my phone sleeps", "Who I text today"],
+  influence: ["A conversation's tone", "A teammate's pace"],
+  dont: ["Other people's moods", "The news cycle", "Yesterday"],
 };
 
-export const MOOD_META: Record<Mood, { emoji: string; label: string }> = {
-  good: { emoji: "😊", label: "Good" },
-  ok: { emoji: "😐", label: "Okay" },
-  low: { emoji: "😔", label: "Low" },
-};
-
-export type Account = {
-  id: string;
-  email: string;
-  displayName: string;
-  createdAt: number;
-};
-
-export type ChallengeStatus = "pending" | "active" | "completed" | "abandoned";
-
-export type Challenge = {
-  id: string;
-  accountId: string;
-  buddyEmail?: string;
-  status: ChallengeStatus;
-  startDate: string;
-  durationDays: number;
-  agreedAt: number;
-  lastCheckIn: string;
-  currentStreak: number;
-  longestStreak: number;
-  relapses: RelapseEntry[];
-  xp: number;
-  willpower: number;
-};
-
-export type RelapseEntry = {
-  id: string;
-  date: string;
-  timestamp: number;
-  note?: string;
-};
-
-export type HabitType =
-  | "gym"
-  | "hydration"
-  | "cold_shower"
-  | "meditation"
-  | "learning"
-  | "gratitude"
-  | "start"
-  | "custom";
-
-export type Habit = {
-  id: string;
-  type: HabitType;
-  title: string;
-  emoji: string;
-  targetPerDay: number;
-  xpPerCompletion: number;
-  enabled: boolean;
-  createdAt: number;
-  cue?: string;
-};
-
-export type HabitCompletion = {
-  id: string;
-  habitId: string;
-  date: string;
-  timestamp: number;
-  count: number;
-};
-
-export type MoodEntryMood =
-  | "ecstatic"
-  | "happy"
-  | "good"
-  | "okay"
-  | "low"
-  | "sad"
-  | "distressed"
-  | "anxious";
-
-export type MoodEntry = {
-  id: string;
-  date: string;
-  timestamp: number;
-  mood: MoodEntryMood;
-  intensity: number;
-  tags: string[];
-  note?: string;
-  photoDataUrl?: string;
-};
-
-export type GratitudeEntry = {
-  id: string;
-  date: string;
-  timestamp: number;
-  text: string;
-};
-
-export type MonsterBoss = {
-  id: string;
-  name: string;
-  emoji: string;
-  maxHp: number;
-  currentHp: number;
-  level: number;
-};
-
-export type XPLevel = {
-  level: number;
-  name: string;
-  minXp: number;
-  maxXp: number;
-};
-
-export const XP_LEVELS: XPLevel[] = [
-  { level: 1, name: "Beginner", minXp: 0, maxXp: 299 },
-  { level: 2, name: "Novice", minXp: 300, maxXp: 599 },
-  { level: 3, name: "Apprentice", minXp: 600, maxXp: 999 },
-  { level: 4, name: "Adept", minXp: 1000, maxXp: 1499 },
-  { level: 5, name: "Expert", minXp: 1500, maxXp: 2099 },
-  { level: 6, name: "Master", minXp: 2100, maxXp: 2799 },
-  { level: 7, name: "Champion", minXp: 2800, maxXp: 3599 },
-  { level: 8, name: "Legend", minXp: 3600, maxXp: 4999 },
-  { level: 9, name: "Mythic", minXp: 5000, maxXp: 99999 },
-];
-
-export const MOOD_ENTRY_META: Record<
-  MoodEntryMood,
-  { emoji: string; label: string; color: string }
-> = {
-  ecstatic: { emoji: "🤩", label: "Ecstatic", color: "#10b981" },
-  happy: { emoji: "😊", label: "Happy", color: "#34d399" },
-  good: { emoji: "🙂", label: "Good", color: "#6ee7b7" },
-  okay: { emoji: "😐", label: "Okay", color: "#fbbf24" },
-  low: { emoji: "😔", label: "Low", color: "#fb923c" },
-  sad: { emoji: "😢", label: "Sad", color: "#f87171" },
-  distressed: { emoji: "😰", label: "Distressed", color: "#ef4444" },
-  anxious: { emoji: "😟", label: "Anxious", color: "#dc2626" },
-};
-
-export const DEFAULT_HABITS: Omit<Habit, "id" | "createdAt">[] = [
-  {
-    type: "start",
-    title: "Two-minute start",
-    emoji: "⚡",
-    targetPerDay: 1,
-    xpPerCompletion: 20,
-    enabled: true,
-    cue: "After I sit down to work",
-  },
-  { type: "gym", title: "Workout", emoji: "💪", targetPerDay: 1, xpPerCompletion: 20, enabled: true },
-  {
-    type: "hydration",
-    title: "Hydration",
-    emoji: "💧",
-    targetPerDay: 8,
-    xpPerCompletion: 2,
-    enabled: true,
-  },
-  {
-    type: "cold_shower",
-    title: "Cold shower",
-    emoji: "🚿",
-    targetPerDay: 1,
-    xpPerCompletion: 15,
-    enabled: true,
-  },
-  {
-    type: "meditation",
-    title: "Meditation",
-    emoji: "🧘",
-    targetPerDay: 1,
-    xpPerCompletion: 25,
-    enabled: true,
-  },
-  {
-    type: "learning",
-    title: "Learning",
-    emoji: "📚",
-    targetPerDay: 1,
-    xpPerCompletion: 20,
-    enabled: true,
-  },
-  {
-    type: "gratitude",
-    title: "Gratitude",
-    emoji: "🙏",
-    targetPerDay: 5,
-    xpPerCompletion: 3,
-    enabled: true,
-  },
-];
-
-export type AversionTag =
-  | "boring"
-  | "unclear"
-  | "too-big"
-  | "fear"
-  | "no-reward"
-  | "tired"
-  | "distracted";
-
-export type UnstickSession = {
-  id: string;
-  createdAt: number;
-  date: string;
-  task: string;
-  aversion: AversionTag;
-  firstAction: string;
-  reward: string;
-  started: boolean;
-  completed: boolean;
-  durationSec: number;
-};
-
-export type WoopCard = {
-  id: string;
-  createdAt: number;
-  wish: string;
-  outcome: string;
-  obstacle: string;
-  planIf: string;
-  planThen: string;
-};
-
-export type TinyRecipe = {
-  id: string;
-  createdAt: number;
-  anchor: string;
-  behavior: string;
-  celebration: string;
-  habitId?: string;
-  lastDoneDate: string | null;
-  doneCount: number;
-};
-
-export type AutomaticityRating = {
-  id: string;
-  habitId: string;
-  date: string;
-  score: number;
-};
-
-export type ProcrastinationStyle = "avoider" | "perfectionist" | "discounter" | "overwhelmed";
-
-export type ProcrastinationProfile = {
-  style: ProcrastinationStyle;
-  answeredAt: number;
+export const DEFAULT_AGENCY: Agency = {
+  values: [],
+  identities: [],
+  control: DEFAULT_CONTROL,
+  daily: [],
+  letters: [],
+  reviews: [],
 };

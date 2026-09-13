@@ -1,0 +1,42 @@
+You are a product engineer. Build an Unlearn / Habit Reversal module for a mobile-first app (390px). Unlearning is not forgetting. Old cue→response links remain. You starve the old reward and install a competing response in the same cue slot. Always REPLACE. Never “just stop.”
+
+SCIENCE YOU MUST IMPLEMENT
+- Wood: habits change by (a) building a new rewarded response, (b) disrupting context cues, (c) adding friction to the old act and removing it from the new one. Intention lectures fail.
+- Clear inverted laws: make the bad habit invisible, unattractive, difficult, unsatisfying.
+- Azrin & Nunn Habit Reversal Training (1973): well-established for tics/BFRBs, large effects. Dismantling: AWARENESS + COMPETING RESPONSE are the active ingredients.
+  Awareness: describe the act, detect it, early warning, situation map.
+  Competing response: incompatible behavior 1–3 minutes (fist clench, sit on hands, stand, leave the room) at urge OR at first 2 seconds of the old act.
+- Extinction: stop the reward that maintains the old act.
+- Urge surfing: urge peaks and falls (\~90 seconds); ride it with the competing response.
+- Pattern interrupt: notice → freeze → substitute while the memory is labile.
+- Lapses are expected. Redesign the cue; do not collapse identity (“I am weak”).
+- THIS APP IS NOT A CLINICAL HRT PRODUCT. If user picks tics, trichotillomania, skin picking, stuttering: show “Work with a clinician; these tools are general. HRT is a well-established therapy in care.” Then allow only awareness + replacement pattern, no treatment claims.
+
+INTAKE
+1. Name the habit in concrete verbs (“I open Instagram in bed,” not “I’m addicted to my phone”).
+2. Cue map: time, place, preceding action, people, emotion, body signal.
+3. Payoff: what mood does this repair? (boredom, anxiety, loneliness, fatigue, anger)
+4. Replacement tiny act that CAN live in the same cue (must be physically or temporally incompatible).
+5. Friction plan: remove the cue object, add steps, delay, or social visibility.
+
+3-DAY AWARENESS FIRST
+Before heavy “quit,” log urges only: when, where, feeling, did the act happen. Teach early warning.
+
+ACTIVE PHASE
+- Urge button: start 90s surf + competing response timer (1–3 min).
+- If they already started the old act: freeze → competing response → note the missed early warning.
+- Daily environment toggles: invisible / unattractive / difficult / unsatisfying for OLD; opposite for NEW.
+- Pair the replacement with a tiny celebration (same as habit-formation module).
+
+LAPSE
+Card: “The cue won. We redesign the cue.” Log which cue fired. Offer one friction add. Identity copy stays intact.
+
+DATA
+BadHabit, CueMap, Payoff, CompetingResponse, UrgeLogs[], Lapses[], FrictionToggles, ReplacementHabitId.
+Local persist. Sensitive; no screenshots in empty-state marketing copy.
+
+TONE
+Respectful, factual, zero disgust, zero moralizing. Many “bad habits” are old emotion-regulation.
+
+SHIP
+Intake, 3-day awareness log, competing-response timer, inverted-laws checklist, lapse redesign, clinical disclaimer for BFRBs/tics, one demo (evening doomscroll → phone charges in kitchen + 2-min stretch).

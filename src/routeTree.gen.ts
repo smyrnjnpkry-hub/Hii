@@ -10,14 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ChallengeRouteImport } from './routes/challenge'
-import { Route as ExploreRouteImport } from './routes/explore'
-import { Route as ForgeRouteImport } from './routes/forge'
+import { Route as AgencyRouteImport } from './routes/agency'
+import { Route as BrainRouteImport } from './routes/brain'
+import { Route as CheckInRouteImport } from './routes/check-in'
 import { Route as HabitsRouteImport } from './routes/habits'
-import { Route as MoodRouteImport } from './routes/mood'
-import { Route as RemindersRouteImport } from './routes/reminders'
-import { Route as StatsRouteImport } from './routes/stats'
-import { Route as YouRouteImport } from './routes/you'
+import { Route as JournalRouteImport } from './routes/journal'
+import { Route as LearnRouteImport } from './routes/learn'
+import { Route as MoreRouteImport } from './routes/more'
+import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as RoutinesRouteImport } from './routes/routines'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SkillRouteImport } from './routes/skill'
+import { Route as StartRouteImport } from './routes/start'
+import { Route as TasksRouteImport } from './routes/tasks'
+import { Route as UnlearnRouteImport } from './routes/unlearn'
+import { Route as WeekRouteImport } from './routes/week'
 import { Route as RoutineIdRouteImport } from './routes/routine.$id'
 import { Route as RunIdRouteImport } from './routes/run.$id'
 
@@ -26,19 +33,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChallengeRoute = ChallengeRouteImport.update({
-  id: '/challenge',
-  path: '/challenge',
+const AgencyRoute = AgencyRouteImport.update({
+  id: '/agency',
+  path: '/agency',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ExploreRoute = ExploreRouteImport.update({
-  id: '/explore',
-  path: '/explore',
+const BrainRoute = BrainRouteImport.update({
+  id: '/brain',
+  path: '/brain',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ForgeRoute = ForgeRouteImport.update({
-  id: '/forge',
-  path: '/forge',
+const CheckInRoute = CheckInRouteImport.update({
+  id: '/check-in',
+  path: '/check-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HabitsRoute = HabitsRouteImport.update({
@@ -46,24 +53,59 @@ const HabitsRoute = HabitsRouteImport.update({
   path: '/habits',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MoodRoute = MoodRouteImport.update({
-  id: '/mood',
-  path: '/mood',
+const JournalRoute = JournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RemindersRoute = RemindersRouteImport.update({
-  id: '/reminders',
-  path: '/reminders',
+const LearnRoute = LearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StatsRoute = StatsRouteImport.update({
-  id: '/stats',
-  path: '/stats',
+const MoreRoute = MoreRouteImport.update({
+  id: '/more',
+  path: '/more',
   getParentRoute: () => rootRouteImport,
 } as any)
-const YouRoute = YouRouteImport.update({
-  id: '/you',
-  path: '/you',
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoutinesRoute = RoutinesRouteImport.update({
+  id: '/routines',
+  path: '/routines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkillRoute = SkillRouteImport.update({
+  id: '/skill',
+  path: '/skill',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StartRoute = StartRouteImport.update({
+  id: '/start',
+  path: '/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TasksRoute = TasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnlearnRoute = UnlearnRouteImport.update({
+  id: '/unlearn',
+  path: '/unlearn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WeekRoute = WeekRouteImport.update({
+  id: '/week',
+  path: '/week',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoutineIdRoute = RoutineIdRouteImport.update({
@@ -79,41 +121,62 @@ const RunIdRoute = RunIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/challenge': typeof ChallengeRoute
-  '/explore': typeof ExploreRoute
-  '/forge': typeof ForgeRoute
+  '/agency': typeof AgencyRoute
+  '/brain': typeof BrainRoute
+  '/check-in': typeof CheckInRoute
   '/habits': typeof HabitsRoute
-  '/mood': typeof MoodRoute
-  '/reminders': typeof RemindersRoute
-  '/stats': typeof StatsRoute
-  '/you': typeof YouRoute
+  '/journal': typeof JournalRoute
+  '/learn': typeof LearnRoute
+  '/more': typeof MoreRoute
+  '/progress': typeof ProgressRoute
+  '/routines': typeof RoutinesRoute
+  '/settings': typeof SettingsRoute
+  '/skill': typeof SkillRoute
+  '/start': typeof StartRoute
+  '/tasks': typeof TasksRoute
+  '/unlearn': typeof UnlearnRoute
+  '/week': typeof WeekRoute
   '/routine/$id': typeof RoutineIdRoute
   '/run/$id': typeof RunIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/challenge': typeof ChallengeRoute
-  '/explore': typeof ExploreRoute
-  '/forge': typeof ForgeRoute
+  '/agency': typeof AgencyRoute
+  '/brain': typeof BrainRoute
+  '/check-in': typeof CheckInRoute
   '/habits': typeof HabitsRoute
-  '/mood': typeof MoodRoute
-  '/reminders': typeof RemindersRoute
-  '/stats': typeof StatsRoute
-  '/you': typeof YouRoute
+  '/journal': typeof JournalRoute
+  '/learn': typeof LearnRoute
+  '/more': typeof MoreRoute
+  '/progress': typeof ProgressRoute
+  '/routines': typeof RoutinesRoute
+  '/settings': typeof SettingsRoute
+  '/skill': typeof SkillRoute
+  '/start': typeof StartRoute
+  '/tasks': typeof TasksRoute
+  '/unlearn': typeof UnlearnRoute
+  '/week': typeof WeekRoute
   '/routine/$id': typeof RoutineIdRoute
   '/run/$id': typeof RunIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/challenge': typeof ChallengeRoute
-  '/explore': typeof ExploreRoute
-  '/forge': typeof ForgeRoute
+  '/agency': typeof AgencyRoute
+  '/brain': typeof BrainRoute
+  '/check-in': typeof CheckInRoute
   '/habits': typeof HabitsRoute
-  '/mood': typeof MoodRoute
-  '/reminders': typeof RemindersRoute
-  '/stats': typeof StatsRoute
-  '/you': typeof YouRoute
+  '/journal': typeof JournalRoute
+  '/learn': typeof LearnRoute
+  '/more': typeof MoreRoute
+  '/progress': typeof ProgressRoute
+  '/routines': typeof RoutinesRoute
+  '/settings': typeof SettingsRoute
+  '/skill': typeof SkillRoute
+  '/start': typeof StartRoute
+  '/tasks': typeof TasksRoute
+  '/unlearn': typeof UnlearnRoute
+  '/week': typeof WeekRoute
   '/routine/$id': typeof RoutineIdRoute
   '/run/$id': typeof RunIdRoute
 }
@@ -121,54 +184,82 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/challenge'
-    | '/explore'
-    | '/forge'
+    | '/agency'
+    | '/brain'
+    | '/check-in'
     | '/habits'
-    | '/mood'
-    | '/reminders'
-    | '/stats'
-    | '/you'
+    | '/journal'
+    | '/learn'
+    | '/more'
+    | '/progress'
+    | '/routines'
+    | '/settings'
+    | '/skill'
+    | '/start'
+    | '/tasks'
+    | '/unlearn'
+    | '/week'
     | '/routine/$id'
     | '/run/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/challenge'
-    | '/explore'
-    | '/forge'
+    | '/agency'
+    | '/brain'
+    | '/check-in'
     | '/habits'
-    | '/mood'
-    | '/reminders'
-    | '/stats'
-    | '/you'
+    | '/journal'
+    | '/learn'
+    | '/more'
+    | '/progress'
+    | '/routines'
+    | '/settings'
+    | '/skill'
+    | '/start'
+    | '/tasks'
+    | '/unlearn'
+    | '/week'
     | '/routine/$id'
     | '/run/$id'
   id:
     | '__root__'
     | '/'
-    | '/challenge'
-    | '/explore'
-    | '/forge'
+    | '/agency'
+    | '/brain'
+    | '/check-in'
     | '/habits'
-    | '/mood'
-    | '/reminders'
-    | '/stats'
-    | '/you'
+    | '/journal'
+    | '/learn'
+    | '/more'
+    | '/progress'
+    | '/routines'
+    | '/settings'
+    | '/skill'
+    | '/start'
+    | '/tasks'
+    | '/unlearn'
+    | '/week'
     | '/routine/$id'
     | '/run/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ChallengeRoute: typeof ChallengeRoute
-  ExploreRoute: typeof ExploreRoute
-  ForgeRoute: typeof ForgeRoute
+  AgencyRoute: typeof AgencyRoute
+  BrainRoute: typeof BrainRoute
+  CheckInRoute: typeof CheckInRoute
   HabitsRoute: typeof HabitsRoute
-  MoodRoute: typeof MoodRoute
-  RemindersRoute: typeof RemindersRoute
-  StatsRoute: typeof StatsRoute
-  YouRoute: typeof YouRoute
+  JournalRoute: typeof JournalRoute
+  LearnRoute: typeof LearnRoute
+  MoreRoute: typeof MoreRoute
+  ProgressRoute: typeof ProgressRoute
+  RoutinesRoute: typeof RoutinesRoute
+  SettingsRoute: typeof SettingsRoute
+  SkillRoute: typeof SkillRoute
+  StartRoute: typeof StartRoute
+  TasksRoute: typeof TasksRoute
+  UnlearnRoute: typeof UnlearnRoute
+  WeekRoute: typeof WeekRoute
   RoutineIdRoute: typeof RoutineIdRoute
   RunIdRoute: typeof RunIdRoute
 }
@@ -182,25 +273,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/challenge': {
-      id: '/challenge'
-      path: '/challenge'
-      fullPath: '/challenge'
-      preLoaderRoute: typeof ChallengeRouteImport
+    '/agency': {
+      id: '/agency'
+      path: '/agency'
+      fullPath: '/agency'
+      preLoaderRoute: typeof AgencyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/explore': {
-      id: '/explore'
-      path: '/explore'
-      fullPath: '/explore'
-      preLoaderRoute: typeof ExploreRouteImport
+    '/brain': {
+      id: '/brain'
+      path: '/brain'
+      fullPath: '/brain'
+      preLoaderRoute: typeof BrainRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/forge': {
-      id: '/forge'
-      path: '/forge'
-      fullPath: '/forge'
-      preLoaderRoute: typeof ForgeRouteImport
+    '/check-in': {
+      id: '/check-in'
+      path: '/check-in'
+      fullPath: '/check-in'
+      preLoaderRoute: typeof CheckInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/habits': {
@@ -210,32 +301,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HabitsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mood': {
-      id: '/mood'
-      path: '/mood'
-      fullPath: '/mood'
-      preLoaderRoute: typeof MoodRouteImport
+    '/journal': {
+      id: '/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof JournalRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reminders': {
-      id: '/reminders'
-      path: '/reminders'
-      fullPath: '/reminders'
-      preLoaderRoute: typeof RemindersRouteImport
+    '/learn': {
+      id: '/learn'
+      path: '/learn'
+      fullPath: '/learn'
+      preLoaderRoute: typeof LearnRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/stats': {
-      id: '/stats'
-      path: '/stats'
-      fullPath: '/stats'
-      preLoaderRoute: typeof StatsRouteImport
+    '/more': {
+      id: '/more'
+      path: '/more'
+      fullPath: '/more'
+      preLoaderRoute: typeof MoreRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/you': {
-      id: '/you'
-      path: '/you'
-      fullPath: '/you'
-      preLoaderRoute: typeof YouRouteImport
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/routines': {
+      id: '/routines'
+      path: '/routines'
+      fullPath: '/routines'
+      preLoaderRoute: typeof RoutinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skill': {
+      id: '/skill'
+      path: '/skill'
+      fullPath: '/skill'
+      preLoaderRoute: typeof SkillRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/start': {
+      id: '/start'
+      path: '/start'
+      fullPath: '/start'
+      preLoaderRoute: typeof StartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unlearn': {
+      id: '/unlearn'
+      path: '/unlearn'
+      fullPath: '/unlearn'
+      preLoaderRoute: typeof UnlearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/week': {
+      id: '/week'
+      path: '/week'
+      fullPath: '/week'
+      preLoaderRoute: typeof WeekRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/routine/$id': {
@@ -257,14 +397,21 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ChallengeRoute: ChallengeRoute,
-  ExploreRoute: ExploreRoute,
-  ForgeRoute: ForgeRoute,
+  AgencyRoute: AgencyRoute,
+  BrainRoute: BrainRoute,
+  CheckInRoute: CheckInRoute,
   HabitsRoute: HabitsRoute,
-  MoodRoute: MoodRoute,
-  RemindersRoute: RemindersRoute,
-  StatsRoute: StatsRoute,
-  YouRoute: YouRoute,
+  JournalRoute: JournalRoute,
+  LearnRoute: LearnRoute,
+  MoreRoute: MoreRoute,
+  ProgressRoute: ProgressRoute,
+  RoutinesRoute: RoutinesRoute,
+  SettingsRoute: SettingsRoute,
+  SkillRoute: SkillRoute,
+  StartRoute: StartRoute,
+  TasksRoute: TasksRoute,
+  UnlearnRoute: UnlearnRoute,
+  WeekRoute: WeekRoute,
   RoutineIdRoute: RoutineIdRoute,
   RunIdRoute: RunIdRoute,
 }

@@ -1,159 +1,112 @@
 import { Onboarding } from "@/components/onboarding";
-import { Plant } from "@/components/plant";
 import { Button } from "@/components/ui";
-import { useAppStore } from "@/lib/store";
-import { currentStreak, plantStage } from "@/lib/stats";
+import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { BarChart3, Bell, Compass, Flame, House, User } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import {
+  CheckSquare,
+  ListOrdered,
+  MoreHorizontal,
+  Repeat2,
+  SunMedium,
+  X,
+} from "lucide-react";
 import { useEffect } from "react";
-import { hydrateStore } from "@/lib/store";
-import { setMasterVolume, unlockAudio } from "@/lib/audio";
-import { unlockTts } from "@/lib/tts";
 
-const TABS = [
-  { to: "/", label: "Home", icon: House },
-  { to: "/habits", label: "Habits", icon: BarChart3 },
-  { to: "/forge", label: "Forge", icon: Flame },
-  { to: "/challenge", label: "Challenge", icon: Compass },
-  { to: "/mood", label: "Mood", icon: Bell },
-  { to: "/you", label: "You", icon: User },
-] as const;
+const NAV = [
+  { to: "/", label: "Today", icon: SunMedium },
+  { to: "/routines", label: "Routines", icon: ListOrdered },
+  { to: "/tasks", label: "Tasks", icon: CheckSquare },
+  { to: "/habits", label: "Habits", icon: Repeat2 },
+  { to: "/more", label: "More", icon: MoreHorizontal },
+];
 
 export function StoreBoot() {
-  const theme = useAppStore((s) => s.settings.theme);
-  const volume = useAppStore((s) => s.settings.volume);
+  const setHydrated = useStore((s) => s.setHydrated);
+  const hydrateDay = useStore((s) => s.hydrateDay);
+  const settings = useStore((s) => s.settings);
 
   useEffect(() => {
-    hydrateStore();
-    const finish = () => {
-      const s = useAppStore.getState();
-      if (!s.hasSeeded) s.seedIfNeeded();
-      if (!s.hydrated) s.setHydrated();
-    };
-    const t = window.setTimeout(finish, 0);
-    return () => window.clearTimeout(t);
-  }, []);
+    const result = useStore.persist.rehydrate();
+    Promise.resolve(result).then(() => {
+      setHydrated();
+      hydrateDay();
+    });
+  }, [hydrateDay, setHydrated]);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme]);
-
-  useEffect(() => {
-    setMasterVolume(volume);
-  }, [volume]);
-
-  useEffect(() => {
-    const unlock = () => {
-      unlockAudio();
-      unlockTts();
-    };
-    window.addEventListener("pointerdown", unlock, { once: true });
-    return () => window.removeEventListener("pointerdown", unlock);
-  }, []);
+    const root = document.documentElement;
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const dark = settings.theme === "dark" || (settings.theme === "system" && systemDark);
+    root.classList.toggle("dark", dark);
+    root.classList.toggle("reduce-motion", settings.reduceMotion);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", dark ? "#121714" : "#f4f0e8");
+  }, [settings.theme, settings.reduceMotion]);
 
   return null;
 }
 
-function Splash() {
-  return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-bg">
-      <div className="relative size-20 overflow-hidden rounded-3xl bg-sun">
-        <div className="absolute -right-3 bottom-0 size-16 rounded-full bg-sun/0 shadow-[inset_0_0_0_9999px_#f5c400]" />
-        <div className="absolute right-[-6px] bottom-[-10px] size-[58px] rounded-full bg-bg" />
-      </div>
-      <div className="text-center">
-        <div className="text-xl font-semibold tracking-tight">ForgeHealth</div>
-        <div className="text-sm text-muted">Build your strength</div>
-      </div>
-    </div>
-  );
-}
-
 export function Shell({ children }: { children: React.ReactNode }) {
-  const hydrated = useAppStore((s) => s.hydrated);
-  const onboardingDone = useAppStore((s) => s.settings.onboardingDone);
+  const onboarded = useStore((s) => s.settings.onboarded);
+  const alerts = useStore((s) => s.alerts);
+  const dismiss = useStore((s) => s.dismissAlert);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const hideNav = pathname.startsWith("/run/") || !onboardingDone;
-  const alerts = useAppStore((s) => s.alerts);
-  const dismiss = useAppStore((s) => s.dismissAlert);
-  const startRun = useAppStore((s) => s.startRun);
-  const navigate = useNavigate();
-  const completions = useAppStore((s) => s.completions);
-  const streak = currentStreak(completions);
-  const plant = plantStage(streak);
+  const hideNav = pathname.startsWith("/run/");
 
-  if (!hydrated) return <Splash />;
-  if (!onboardingDone) return <Onboarding />;
+  if (!onboarded) return <Onboarding />;
 
   return (
-    <div className="min-h-dvh w-full bg-sunken">
-      <div
-        className={cn(
-          "relative mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-bg sm:shadow-card",
-          !hideNav && "pb-24",
-        )}
-      >
-        {alerts[0] ? (
-          <div className="mx-4 mt-3 rounded-2xl bg-sun px-4 py-3 text-sun-ink shadow-card">
-            <div className="flex items-start gap-3">
-              <span className="text-xl">{alerts[0].emoji}</span>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold">{alerts[0].title}</div>
-                <div className="text-sm opacity-80">{alerts[0].body}</div>
-              </div>
-              <button
-                className="text-xs font-medium opacity-70"
-                onClick={() => dismiss(alerts[0].id)}
-              >
-                Dismiss
-              </button>
+    <div className="relative mx-auto min-h-dvh w-full max-w-lg bg-bg">
+      {alerts[0] ? (
+        <div className="sticky top-0 z-40 px-3 pt-3">
+          <div className="flex items-start gap-3 rounded-2xl bg-fg px-3 py-3 text-bg shadow-card">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">{alerts[0].title}</p>
+              <p className="text-sm opacity-80">{alerts[0].body}</p>
             </div>
-            {alerts[0].routineId ? (
-              <Button
-                size="sm"
-                variant="solid"
-                className="mt-2"
-                onClick={() => {
-                  const rid = alerts[0].routineId!;
-                  dismiss(alerts[0].id);
-                  startRun(rid);
-                  void navigate({ to: "/run/$id", params: { id: rid } });
-                }}
-              >
-                Start now
-              </Button>
-            ) : null}
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-9 text-bg hover:bg-bg/10"
+              onClick={() => dismiss(alerts[0].id)}
+              aria-label="Dismiss"
+            >
+              <X className="size-4" />
+            </Button>
           </div>
-        ) : null}
-        <div className="flex-1">{children}</div>
-        {!hideNav ? (
-          <nav className="fixed bottom-0 left-1/2 z-30 w-full max-w-lg -translate-x-1/2 border-t border-border bg-bg/95 backdrop-blur-md">
-            <div className="flex items-center justify-around px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-              {TABS.map((tab) => {
-                const active =
-                  tab.to === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(tab.to);
-                const Icon = tab.icon;
-                return (
-                  <Link
-                    key={tab.to}
-                    to={tab.to}
-                    className={cn(
-                      "flex min-h-12 min-w-12 flex-col items-center justify-center gap-0.5 rounded-2xl px-3 text-[11px] font-medium",
-                      active ? "text-fg" : "text-faint",
-                    )}
-                  >
-                    <Icon className="size-5" strokeWidth={active ? 2.4 : 2} />
-                    {tab.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
+      <main className={hideNav ? "" : undefined}>{children}</main>
+      {hideNav ? null : (
+      <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-lg border-t border-border bg-bg/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur">
+        <ul className="grid grid-cols-5 px-1 pt-1">
+          {NAV.map((n) => {
+            const on =
+              n.to === "/"
+                ? pathname === "/"
+                : n.to === "/routines"
+                  ? pathname.startsWith("/routine") || pathname.startsWith("/run/")
+                  : pathname === n.to || pathname.startsWith(n.to + "/");
+            const Icon = n.icon;
+            return (
+              <li key={n.to}>
+                <Link
+                  to={n.to}
+                  className={cn(
+                    "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-[11px] font-medium",
+                    on ? "text-fg" : "text-faint",
+                  )}
+                >
+                  <Icon className="size-5" strokeWidth={on ? 2.2 : 1.8} />
+                  {n.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      )}
     </div>
   );
 }

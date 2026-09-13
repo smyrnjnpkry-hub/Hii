@@ -1,0 +1,86 @@
+Build a beautiful, calming, science-informed mobile-first PWA (works on phone and desktop) called SPIRE.
+
+SPIRE is a daily companion for Wholebeing — Tal Ben-Shahar’s five-part model of happiness. Happiness is not a mood you chase. It is the experience of being well across five dimensions. Directly chasing “I want to be happy” often backfires (the happiness paradox). The app never nags people to feel happy. It helps them cultivate the five elements so well-being can emerge.
+
+## Philosophy the product must embody
+
+The sunlight / rainbow metaphor (core onboarding story):
+Happiness is like staring at the sun — vital, but harmful if you look at it directly. SPIRE is the prism. Users look at the five colors instead.
+
+Wholebeing, not a happiness score:
+S Spiritual · P Physical · I Intellectual · R Relational · E Emotional.
+
+Antifragility, not just resilience:
+The point is not only bouncing back. It is growing through difficulty (Taleb’s antifragility + post-traumatic growth). When life is hard, users “climb the SPIRE” rather than waiting to feel good first.
+
+Small is enough:
+Lasting change comes from Minimum Viable Interventions (MVIs) and the 3 Rs: Reminders, Repetitions, Rituals — from Happy Habits (2025). Heroic overhauls fail. One-minute actions compound.
+
+Continuum, not a switch:
+Happiness lives on a continuum. There is no “arrived.” Copy must never imply a finish line.
+
+Money is not a sixth pillar:
+Financial security matters for food, shelter, and education. Beyond basics it is treated as a derivative of SPIRE, not a tracked dimension. Do not add a “Money” radar spoke.
+
+## Intellectual honesty / claims policy (non-negotiable)
+
+SPIRE is a synthesis and teaching framework, not a patented clinical protocol with its own large RCT.
+
+- Do not say “clinically proven SPIRE treatment” or “this app cures depression.”
+- Do say: “Inspired by Tal Ben-Shahar’s SPIRE / Wholebeing model. Each pillar draws on established research (relationships, movement, meaning, gratitude, curiosity). This is a wellbeing companion, not therapy.”
+- If a user is in crisis, show a short, calm redirect: this app cannot replace professional help; in the US call/text 988; locally seek emergency services.
+- Credit sources in an About screen:
+  - Tal Ben-Shahar, Happiness Studies: An Introduction (2021), chapter “The SPIRE of Happiness”
+  - Happier, No Matter What (2021)
+  - Happy Habits (2025) — MVIs and 3 Rs
+  - Wholebeing Institute SPIRE check-in
+  - Research the model draws on: Mauss et al. 2011 (valuing happiness paradox); Harvard Study of Adult Development (relationships); exercise–mood literature; gratitude research (Emmons); meaning/purpose and mindfulness literatures
+- Tone: warm, wise, short sentences, no guru voice, no toxic positivity. Allow painful emotions. Ben-Shahar’s line to honor: you can feel sad and still take a walk.
+
+## Exact pillar definitions (use these everywhere)
+
+1. Spiritual — Leading a meaningful life and mindfully savoring the present. Purpose + presence. Not required to be religious. Includes turning ordinary moments into meaningful ones and seeing work as a calling rather than only a job or career.
+2. Physical — Caring for the body and the mind–body connection. Movement, real food, sleep, recovery, touch. Stress is not the enemy; lack of recovery is. Three recovery levels: micro (breath, stretch), mid (walk, nap, workout), macro (weekend, vacation, real time off).
+3. Intellectual — Engaging in deep learning and opening to experience. Curiosity over credentials. Ask questions. Stay with a text, artwork, idea, or patch of nature long enough to actually see it.
+4. Relational — Nurturing a constructive relationship with self and others. Quality of close relationships is the strongest long-run predictor of happiness. Giving, listening, micro-moments. Generosity includes self-fullness — give to yourself so you can keep giving.
+5. Emotional — Feeling all emotions and reaching toward resilience and positivity. Cultivate gratitude and joy. Allow envy, sorrow, fear without drowning in them.
+
+## Visual design
+
+- Airy, nature-adjacent, slightly prismatic. Soft gradients, generous white space, rounded cards, gentle motion.
+- Pillar colors: Spiritual teal/indigo · Physical sage · Intellectual amber · Relational coral · Emotional gold.
+- Home snapshot: 5-spoke radar or five bars that can read as a quiet rainbow.
+- Light + dark mode. Reduced-motion option. Large tap targets.
+- A quiet companion, not a gamified scoreboard.
+
+## Information architecture
+
+Bottom nav: Today · Check-in · Habits · Journal · More
+
+1. Onboarding (under 4 minutes): rainbow metaphor → five pillars → paradox → first Check-In → reminder time → wellbeing-not-therapy disclaimer.
+
+2. Today: last radar, one small action from the lowest pillar (prefer an MVI ≤ 3 min), Ordinary / Hard season chip, quick actions.
+
+3. SPIRE Check-In: 1–10 sliders with official definitions, optional note, radar after submit, pick 1–2 actions. Daily welcome, weekly enough. No punishment for missed days.
+
+4. Habits in three layers:
+   - MVIs (30–90 sec): three breaths; five gratitudes; read a quote slowly; 45 seconds of stairs; one “thinking of you”; name the feeling; 20-second awe; water + stand; phone down and look at a person or window.
+   - Micro-habits (2–15 min) tagged to a pillar.
+   - 3 Rs when pinning: Reminder, Repetition (default 3 days/week, not 7), Ritual.
+
+5. Journal: free write + templates (meaning, body, curiosity, relationship, three good things, calling description).
+
+6. Learn: one 2–4 min lesson per pillar + 60-second SPIRE diagram. Pitfalls included (forced positivity, meaning-hunting, stress without recovery).
+
+7. Hard season mode: smaller asks; climb the five stairs from Happier, No Matter What — meaning, body need, one thing learned, one person, permission to feel.
+
+8. Progress: weekly recap of pillars and MVIs, not a happiness grade. Humble insights only.
+
+9. Settings: reminder, theme, About + sources, crisis note, export/delete. No required account.
+
+## Micro-habit seed library
+
+Spiritual: 3-min presence; meaning note; calling 5%; values check; 15-min off-phone.
+Physical: 10-min walk; sleep wind-down; whole-food swap; stretch after sitting; 3-min movement snack.
+Intellectual: 20-min deep reading; one genuine question; learn-and-tell; savor art/nature; re-read one page slowly.
+Relational: 10 undistracted minutes; check-in text;

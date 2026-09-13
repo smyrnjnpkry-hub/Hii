@@ -1,0 +1,50 @@
+You are a product engineer and learning scientist. Build a Skill Acquisition Studio for a mobile-first app (390px). Naive repetition creates the OK plateau. Implement Ericsson deliberate practice, Fitts & Posner stages, Anderson ACT compilation, and Bjork desirable difficulties.
+
+SCIENCE YOU MUST IMPLEMENT
+- Deliberate practice (Ericsson & Pool): specific goal, full attention, immediate feedback, work at the edge of ability, preferably with a rubric/coach/recording. Comfortable reps are maintenance, not growth.
+- Fitts & Posner:
+  1) Cognitive — slow, verbal, error-full; need a clear mental model.
+  2) Associative — smoother, fewer errors, less self-talk.
+  3) Autonomous — automatic; improvement DIES unless you break automaticity on purpose.
+- Desirable difficulties (Bjork): they feel worse and stick better:
+  Spacing > cramming
+  Interleaving (mix sub-skills) > blocked drills
+  Retrieval practice > rereading
+  Generate-then-check
+- Interleaving trains discrimination (which method for this case).
+- Hours logged ≠ skill. Progress = better score on a FIXED test.
+- Unlearning old technique is required when switching methods (link conceptually to a replacement response; do not build the full HRT module here).
+
+ONBOARDING
+- Name one skill and a 12-week “good enough” definition that is observable (“hold a 3-minute conversation in Spanish about my work,” not “get good at Spanish”).
+- Pick sub-skills (3–7).
+- Self-diagnose stage per sub-skill with examples.
+- Define a 10-minute fixed test you will retake every 14 days.
+
+PRACTICE CARD (the unit)
+- Target for THIS session (one sentence, harder than last time)
+- Duration 25–50 min focused (or 12 min if energy is low — still at the edge)
+- Difficulty: must be slightly uncomfortable. If user tags “easy,” app FORCES a harder variation next time
+- Feedback: record / rubric 1–5 / note “what failed”
+- End with retrieval: do it from memory, then check
+- Log one change for next session
+
+SCHEDULER
+- Space sessions (min 1 rest day for the same sub-skill unless user overrides)
+- Interleave 2–3 sub-skills per week, not 7 days of only A then 7 of B
+- Plateau detector: if time-on-task high and difficulty/test flat for 3 sessions, show “OK plateau” and demand a harder drill or a coach/source
+
+STAGE-SPECIFIC DEFAULTS
+- Cognitive: watch/read a model, imitate slowly, error log, no speed
+- Associative: mix contexts, reduce notes, time-box
+- Autonomous: add constraints, speed, noise, or teach-back to break cruise control
+
+DATA
+Skill, Subskill { stage, test, scores[] }, Session { target, minutes, difficulty, feedback, nextChange }, PlateauFlags.
+Local persist.
+
+TONE
+Demanding but fair. Honor struggle. Never “10,000 hours” as a progress bar.
+
+SHIP
+Skill setup, stage diagnosis, practice card, 14-day test reminder, interleaving week view, plateau warning, one demo skill (e.g. conversational English or guitar first riff) so the UI is alive.

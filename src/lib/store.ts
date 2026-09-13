@@ -1,82 +1,248 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { playSound } from "@/lib/audio";
-import { seedReminders, seedRoutines, templateToRoutine, blankRoutine } from "@/lib/seed";
-import { speak } from "@/lib/tts";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type {
-  Completion,
-  InAppAlert,
-  Mood,
-  Routine,
-  RoutineReminder,
-  RunSession,
-  Settings,
-  StandaloneReminder,
-  Step,
-  Template,
-  Account,
-  Challenge,
+  Agency,
+  BadHabit,
+  BrainDay,
+  CheckIn,
+  CheckupDates,
+  ContextReview,
+  DailyAgency,
+  Domain,
+  DomainPlan,
+  FutureLetter,
   Habit,
-  HabitCompletion,
-  MoodEntry,
-  GratitudeEntry,
-  MonsterBoss,
-  UnstickSession,
-  WoopCard,
-  TinyRecipe,
-  AutomaticityRating,
-  ProcrastinationProfile,
-  AversionTag,
-  ProcrastinationStyle,
-} from "@/lib/types";
-import { DEFAULT_SETTINGS, DEFAULT_HABITS } from "@/lib/types";
-import { TEMPLATES } from "@/lib/templates";
-import { todayKey, uid } from "@/lib/utils";
+  InAppAlert,
+  JournalEntry,
+  Mit,
+  Pillar,
+  PracticeSession,
+  RoutineCompletion,
+  RoutineStep,
+  RoutineTemplate,
+  RunSession,
+  Season,
+  Settings,
+  Skill,
+  Scores,
+  Task,
+  TaskProject,
+  TimedRoutine,
+  UrgeLog,
+  WeeklyReview,
+} from "./types";
+import {
+  DEFAULT_AGENCY,
+  DEFAULT_SETTINGS,
+  DOMAINS,
+  PILLARS,
+} from "./types";
+import { addDays, shrinkAct, todayKey, uid, weekday, weekStart } from "./utils";
+import { blankRoutine, checkKey, seedRoutines, templateToRoutine } from "./routines";
+import { carryForwardTasks as applyCarryForward, DEFAULT_TASK_PROJECTS, nextOccurrence, seedTasks } from "./tasks";
 
-export type Checks = Record<string, string[]>;
+export const DOW_DEFAULT = [1, 3, 5];
 
-type PersistShape = {
-  routines: Routine[];
-  reminders: StandaloneReminder[];
-  completions: Completion[];
-  checks: Checks;
+function emptyPlans(): DomainPlan[] {
+  return DOMAINS.map((domain) => ({
+    domain,
+    weeklyOutcome: "",
+    tinyAct: "",
+    killCriterion: "",
+  }));
+}
+
+function seedMits(day: string): Mit[] {
+  return [
+    {
+      id: uid(),
+      title: "Write the first ugly paragraph",
+      domain: "craft",
+      startCue: "After I pour coffee, at the desk",
+      due: day,
+      status: "open",
+      aversiveness: 3,
+      feeling: "",
+      firstSlice: "Open the document and write one sentence",
+      reward: "Tea after",
+      expectancy: 6,
+      value: 8,
+      starts: [],
+      bundleWant: "",
+    },
+    {
+      id: uid(),
+      title: "Ten-minute walk outside",
+      domain: "body",
+      startCue: "After lunch, at the door",
+      due: day,
+      status: "open",
+      aversiveness: 2,
+      feeling: "",
+      firstSlice: "Put on shoes",
+      reward: "Sunlight",
+      expectancy: 8,
+      value: 7,
+      starts: [],
+      bundleWant: "Podcast only on the walk",
+    },
+    {
+      id: uid(),
+      title: "Send one undistracted check-in",
+      domain: "people",
+      startCue: "After the walk, on the sofa",
+      due: day,
+      status: "open",
+      aversiveness: 2,
+      feeling: "",
+      firstSlice: "Open messages and type the first line",
+      reward: "Nothing extra",
+      expectancy: 7,
+      value: 8,
+      starts: [],
+      bundleWant: "",
+    },
+  ];
+}
+
+function seedSkill(): Skill {
+  return {
+    id: uid(),
+    name: "Conversational presence",
+    goodEnough:
+      "Hold a 3-minute undistracted conversation and ask one real follow-up",
+    test: "Record a 3-minute conversation or a 3-minute spoken recap. Score 1–10 on presence.",
+    subskills: [
+      { id: uid(), name: "Ask, then wait", stage: "cognitive" },
+      { id: uid(), name: "Paraphrase before advice", stage: "cognitive" },
+      { id: uid(), name: "Phone out of reach", stage: "associative" },
+    ],
+    sessions: [],
+    testScores: [],
+  };
+}
+
+function seedUnlearn(): BadHabit {
+  return {
+    id: uid(),
+    name: "I open a feed in bed",
+    cue: {
+      time: "Night, after lights dim",
+      place: "Bed",
+      preceding: "Plug in charger on the nightstand",
+      people: "Alone",
+      emotion: "Tired, a little lonely",
+      body: "Heavy eyes, restless hands",
+    },
+    payoff: "Numb the in-between before sleep",
+    competingResponse: "Phone goes to the kitchen. Two-minute stretch beside the bed.",
+    replacement: "Charge the phone in the kitchen, then stretch for two minutes",
+    phase: "awareness",
+    clinical: false,
+    urgeLogs: [],
+    lapses: [],
+    friction: {
+      invisible: false,
+      unattractive: false,
+      difficult: false,
+      unsatisfying: false,
+    },
+  };
+}
+
+export interface PersistShape {
   settings: Settings;
-  session: RunSession | null;
+  checkIns: CheckIn[];
+  habits: Habit[];
+  journal: JournalEntry[];
+  mits: Mit[];
+  plans: DomainPlan[];
+  reviews: WeeklyReview[];
+  skill: Skill | null;
+  unlearn: BadHabit | null;
+  agency: Agency;
+  brain: BrainDay[];
+  checkups: CheckupDates;
+  sleepLog: { date: string; hours: number }[];
+  hardStairs: Record<string, string>;
   alerts: InAppAlert[];
   firedKeys: string[];
-  hasSeeded: boolean;
-  // ForgeHealth state
-  account: Account | null;
-  challenge: Challenge | null;
-  habits: Habit[];
-  habitCompletions: HabitCompletion[];
-  moodEntries: MoodEntry[];
-  gratitudeEntries: GratitudeEntry[];
-  monster: MonsterBoss | null;
-  unsticks: UnstickSession[];
-  woops: WoopCard[];
-  recipes: TinyRecipe[];
-  autoRatings: AutomaticityRating[];
-  procrastination: ProcrastinationProfile | null;
-};
+  drillBest: { speed: number; reason: number };
+  routines: TimedRoutine[];
+  completions: RoutineCompletion[];
+  checks: Record<string, string[]>;
+  routinesSeeded: boolean;
+  tasks: Task[];
+  taskProjects: TaskProject[];
+  tasksSeeded: boolean;
+}
 
-type AppState = PersistShape & {
+interface AppState extends PersistShape {
   hydrated: boolean;
   setHydrated: () => void;
-  seedIfNeeded: () => void;
+  hydrateDay: () => void;
   updateSettings: (patch: Partial<Settings>) => void;
-  addFromTemplate: (t: Template) => string;
+  completeOnboarding: (p: {
+    name: string;
+    reminderTime: string;
+    scores: Scores;
+    identity: string;
+    tinyAct: string;
+    cueRoutine: string;
+    cuePlace: string;
+    prompt: string;
+    pillar: Pillar;
+  }) => void;
+  saveCheckIn: (scores: Scores, note: string, actions: string[]) => void;
+  setSeason: (season: Season) => void;
+  addHabit: (h: Omit<Habit, "id" | "createdAt" | "completions" | "misses" | "automaticity" | "shrinkHistory">) => string;
+  completeHabit: (id: string, date?: string) => void;
+  missHabit: (id: string, date?: string) => void;
+  shrinkHabit: (id: string) => void;
+  updateHabit: (id: string, patch: Partial<Habit>) => void;
+  deleteHabit: (id: string) => void;
+  scoreAutomaticity: (id: string, score: number) => void;
+  addJournal: (template: string, body: string, pillar?: Pillar) => void;
+  deleteJournal: (id: string) => void;
+  addMit: (partial?: Partial<Mit>) => string;
+  updateMit: (id: string, patch: Partial<Mit>) => void;
+  completeMit: (id: string) => void;
+  skipMit: (id: string, feeling: string) => void;
+  logStart: (id: string, minutes: number) => void;
+  carryForward: () => void;
+  setPlan: (domain: Domain, patch: Partial<DomainPlan>) => void;
+  addReview: (r: Omit<WeeklyReview, "id">) => void;
+  setSkill: (s: Skill) => void;
+  addSession: (s: Omit<PracticeSession, "id" | "at">) => void;
+  addTestScore: (score: number) => void;
+  setUnlearn: (b: BadHabit) => void;
+  logUrge: (u: Omit<UrgeLog, "id" | "at" | "date">) => void;
+  logLapse: (cue: string, note: string) => void;
+  setAgency: (patch: Partial<Agency>) => void;
+  saveDailyAgency: (d: Omit<DailyAgency, "date">) => void;
+  addLetter: (body: string) => void;
+  addContextReview: (r: Omit<ContextReview, "id" | "at">) => void;
+  upsertBrain: (patch: Partial<BrainDay>) => void;
+  logSleep: (hours: number) => void;
+  setCheckups: (patch: Partial<CheckupDates>) => void;
+  setHardStair: (id: string, value: string) => void;
+  pushAlert: (title: string, body: string) => void;
+  dismissAlert: (id: string) => void;
+  markFired: (key: string) => void;
+  setDrillBest: (kind: "speed" | "reason", n: number) => void;
+  exportJson: () => string;
+  wipeAll: () => void;
+  session: RunSession | null;
+  ensureRoutines: () => void;
+  addFromTemplate: (t: RoutineTemplate) => string;
   addBlankRoutine: () => string;
-  saveRoutine: (routine: Routine) => void;
+  saveRoutine: (routine: TimedRoutine) => void;
   deleteRoutine: (id: string) => void;
   toggleRoutine: (id: string) => void;
-  saveStep: (routineId: string, step: Step) => void;
-  addStep: (routineId: string, step?: Partial<Step>) => void;
+  saveStep: (routineId: string, step: RoutineStep) => void;
+  addStep: (routineId: string, step?: Partial<RoutineStep>) => void;
   deleteStep: (routineId: string, stepId: string) => void;
   moveStep: (routineId: string, from: number, to: number) => void;
-  saveReminder: (r: StandaloneReminder) => void;
-  addReminder: () => string;
-  deleteReminder: (id: string) => void;
   toggleCheck: (routineId: string, stepId: string, date?: string) => void;
   startRun: (routineId: string) => void;
   pauseRun: () => void;
@@ -85,162 +251,491 @@ type AppState = PersistShape & {
   completeStep: () => void;
   skipStep: () => void;
   abortRun: () => void;
-  dismissAlert: (id: string) => void;
-  pushAlert: (alert: Omit<InAppAlert, "id" | "createdAt">) => void;
-  markFired: (key: string) => void;
-  completeOnboarding: (plantName: string, templateIds: string[]) => void;
-  setCompletionMood: (completionId: string, mood: Mood) => void;
-  // ForgeHealth actions
-  setAccount: (account: Account) => void;
-  startChallenge: (durationDays: number, buddyEmail?: string) => void;
-  checkInChallenge: () => void;
-  recordRelapse: (note?: string) => void;
-  addXp: (amount: number) => void;
-  adjustWillpower: (delta: number) => void;
-  addHabit: (habit: Omit<Habit, "id" | "createdAt">) => void;
-  toggleHabit: (habitId: string) => void;
-  deleteHabit: (habitId: string) => void;
-  completeHabit: (habitId: string, count?: number) => void;
-  addMoodEntry: (entry: Omit<MoodEntry, "id" | "timestamp">) => void;
-  updateMoodEntry: (id: string, patch: Partial<MoodEntry>) => void;
-  deleteMoodEntry: (id: string) => void;
-  addGratitude: (text: string) => void;
-  spawnMonster: () => void;
-  damageMonster: (damage: number) => void;
-  ensureDefaultHabits: () => void;
-  saveUnstick: (u: {
-    task: string;
-    aversion: AversionTag;
-    firstAction: string;
-    reward: string;
-  }) => string;
-  finishUnstick: (id: string, completed: boolean, durationSec: number) => void;
-  addWoop: (w: Omit<WoopCard, "id" | "createdAt">) => void;
-  deleteWoop: (id: string) => void;
-  addRecipe: (r: Omit<TinyRecipe, "id" | "createdAt" | "lastDoneDate" | "doneCount">) => void;
-  completeRecipe: (id: string) => void;
-  deleteRecipe: (id: string) => void;
-  rateAutomaticity: (habitId: string, score: number) => void;
-  setProcrastination: (style: ProcrastinationStyle) => void;
-};
-
-function checkKey(date: string, routineId: string) {
-  return `${date}:${routineId}`;
+  ensureTasks: () => void;
+  addTask: (partial?: Partial<Task>) => string;
+  updateTask: (id: string, patch: Partial<Task>) => void;
+  toggleTask: (id: string) => void;
+  deleteTask: (id: string) => void;
+  addTaskProject: (name: string) => string;
+  carryForwardTasks: () => void;
 }
 
-function cueStep(settings: Settings, step: Step, isLast: boolean) {
-  if (settings.soundEnabled) playSound(settings.stepSound, settings.volume);
-  if (settings.voiceEnabled) {
-    const mins = Math.max(1, Math.round(step.durationSec / 60));
-    const time =
-      step.durationSec < 60
-        ? `${step.durationSec} seconds`
-        : mins === 1
-          ? "one minute"
-          : `${mins} minutes`;
-    speak(`${step.title}. ${time}${isLast ? ". Last step." : "."}`, settings.volume);
-  }
-}
+const emptyPersist = (): PersistShape => ({
+  settings: { ...DEFAULT_SETTINGS },
+  checkIns: [],
+  habits: [],
+  journal: [],
+  mits: [],
+  plans: emptyPlans(),
+  reviews: [],
+  skill: null,
+  unlearn: null,
+  agency: structuredClone(DEFAULT_AGENCY),
+  brain: [],
+  checkups: { hearing: "", vision: "", clinician: "" },
+  sleepLog: [],
+  hardStairs: {},
+  alerts: [],
+  firedKeys: [],
+  drillBest: { speed: 0, reason: 0 },
+  routines: [],
+  completions: [],
+  checks: {},
+  routinesSeeded: false,
+  tasks: [],
+  taskProjects: DEFAULT_TASK_PROJECTS,
+  tasksSeeded: false,
+});
 
-function remainingMs(session: RunSession, now = Date.now()) {
-  const elapsed =
-    session.status === "paused"
-      ? session.elapsedBeforePause
-      : session.elapsedBeforePause + (now - session.segmentStartedAt);
-  return session.stepDurationMs - elapsed;
-}
-
-export { remainingMs };
-
-function finishFrom(session: RunSession, routine: Routine, extra: Partial<RunSession> = {}): Completion {
-  const now = Date.now();
-  const merged: RunSession = { ...session, ...extra };
-  return {
-    id: uid(),
-    routineId: routine.id,
-    date: todayKey(),
-    startedAt: merged.sessionStartedAt,
-    finishedAt: now,
-    completedSteps: merged.completed.length,
-    totalSteps: routine.steps.length,
-    skippedSteps: merged.skipped.length,
-    durationSec: Math.round((now - merged.sessionStartedAt) / 1000),
-    stepActualMs: merged.stepActualMs,
-  };
-}
-
-export const useAppStore = create<AppState>()(
+export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
-      routines: [],
-      reminders: [],
-      completions: [],
-      checks: {},
-      settings: DEFAULT_SETTINGS,
-      session: null,
-      alerts: [],
-      firedKeys: [],
-      hasSeeded: false,
+      ...emptyPersist(),
       hydrated: false,
-      // ForgeHealth initial state
-      account: null,
-      challenge: null,
-      habits: [],
-      habitCompletions: [],
-      moodEntries: [],
-      gratitudeEntries: [],
-      monster: null,
-      unsticks: [],
-      woops: [],
-      recipes: [],
-      autoRatings: [],
-      procrastination: null,
-
+      session: null,
       setHydrated: () => set({ hydrated: true }),
-
-      seedIfNeeded: () => {
-        if (get().hasSeeded) return;
-        // First-run: reminders only. Routines come from onboarding picks.
-        set({
-          routines: [],
-          reminders: seedReminders(),
-          hasSeeded: true,
+      hydrateDay: () => {
+        const s = get();
+        const today = todayKey();
+        if (!s.settings.onboarded) return;
+        get().ensureRoutines();
+        get().ensureTasks();
+        get().carryForward();
+        get().carryForwardTasks();
+        if (s.settings.lastAutoMissDate === today) return;
+        const dow = weekday(today);
+        const habits = s.habits.map((h) => {
+          if (!h.daysOfWeek.includes(dow)) return h;
+          if (h.completions.some((c) => c.date === today)) return h;
+          if (h.misses.some((m) => m.date === today)) return h;
+          return h;
         });
+        set({ habits, settings: { ...s.settings, lastAutoMissDate: today } });
       },
-
       updateSettings: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
-
+      completeOnboarding: (p) => {
+        const today = todayKey();
+        const habit: Habit = {
+          id: uid(),
+          identity: p.identity,
+          tinyAct: p.tinyAct,
+          fullAct: p.tinyAct,
+          pillar: p.pillar,
+          cueRoutine: p.cueRoutine,
+          cuePlace: p.cuePlace,
+          prompt: p.prompt,
+          daysOfWeek: DOW_DEFAULT,
+          reminder: p.reminderTime,
+          ritualNote: "",
+          keystone: true,
+          createdAt: new Date().toISOString(),
+          completions: [],
+          misses: [],
+          automaticity: [],
+          shrinkHistory: [],
+          env: { obvious: true, attractive: true, easy: true, satisfying: false },
+          kind: "habit",
+        };
+        set({
+          settings: {
+            ...DEFAULT_SETTINGS,
+            ...get().settings,
+            onboarded: true,
+            name: p.name,
+            reminderTime: p.reminderTime,
+          },
+          checkIns: [
+            {
+              id: uid(),
+              date: today,
+              scores: p.scores,
+              note: "First check-in",
+              actions: [],
+            },
+          ],
+          habits: [habit],
+          mits: seedMits(today),
+          skill: seedSkill(),
+          unlearn: seedUnlearn(),
+          agency: {
+            ...structuredClone(DEFAULT_AGENCY),
+            identities: [p.identity],
+            values: [
+              { name: "Health", weeklyBehavior: "Protect sleep and a daily walk", dont: "Trade rest for heroic hours" },
+              { name: "Craft", weeklyBehavior: "One ugly first minute on the real work", dont: "Hide in busywork" },
+              { name: "People", weeklyBehavior: "One undistracted contact", dont: "Perform connection" },
+            ],
+          },
+          routines: seedRoutines(),
+          routinesSeeded: true,
+          tasks: seedTasks(today),
+          taskProjects: DEFAULT_TASK_PROJECTS,
+          tasksSeeded: true,
+        });
+      },
+      saveCheckIn: (scores, note, actions) => {
+        const today = todayKey();
+        set((s) => {
+          const rest = s.checkIns.filter((c) => c.date !== today);
+          return {
+            checkIns: [
+              { id: uid(), date: today, scores, note, actions },
+              ...rest,
+            ],
+          };
+        });
+      },
+      setSeason: (season) =>
+        set((s) => ({ settings: { ...s.settings, season } })),
+      addHabit: (h) => {
+        const id = uid();
+        const live = get().habits.filter((x) => x.kind === "habit").length;
+        if (live >= 3 && h.kind === "habit") return "";
+        set((s) => ({
+          habits: [
+            {
+              ...h,
+              id,
+              createdAt: new Date().toISOString(),
+              completions: [],
+              misses: [],
+              automaticity: [],
+              shrinkHistory: [],
+            },
+            ...s.habits,
+          ],
+        }));
+        return id;
+      },
+      completeHabit: (id, date = todayKey()) =>
+        set((s) => ({
+          habits: s.habits.map((h) =>
+            h.id === id
+              ? {
+                  ...h,
+                  misses: h.misses.filter((m) => m.date !== date),
+                  completions: h.completions.some((c) => c.date === date)
+                    ? h.completions
+                    : [{ date, at: new Date().toISOString() }, ...h.completions],
+                }
+              : h,
+          ),
+        })),
+      missHabit: (id, date = todayKey()) =>
+        set((s) => ({
+          habits: s.habits.map((h) =>
+            h.id === id
+              ? {
+                  ...h,
+                  completions: h.completions.filter((c) => c.date !== date),
+                  misses: h.misses.some((m) => m.date === date)
+                    ? h.misses
+                    : [{ date }, ...h.misses],
+                }
+              : h,
+          ),
+        })),
+      shrinkHabit: (id) =>
+        set((s) => ({
+          habits: s.habits.map((h) => {
+            if (h.id !== id) return h;
+            const next = shrinkAct(h.tinyAct);
+            return {
+              ...h,
+              tinyAct: next,
+              shrinkHistory: [h.tinyAct, ...h.shrinkHistory].slice(0, 8),
+            };
+          }),
+        })),
+      updateHabit: (id, patch) =>
+        set((s) => ({
+          habits: s.habits.map((h) => (h.id === id ? { ...h, ...patch, id: h.id } : h)),
+        })),
+      deleteHabit: (id) =>
+        set((s) => ({ habits: s.habits.filter((h) => h.id !== id) })),
+      scoreAutomaticity: (id, score) =>
+        set((s) => ({
+          habits: s.habits.map((h) =>
+            h.id === id
+              ? {
+                  ...h,
+                  automaticity: [
+                    { date: todayKey(), score },
+                    ...h.automaticity.filter((a) => a.date !== todayKey()),
+                  ],
+                }
+              : h,
+          ),
+        })),
+      addJournal: (template, body, pillar) =>
+        set((s) => ({
+          journal: [
+            {
+              id: uid(),
+              date: todayKey(),
+              at: new Date().toISOString(),
+              template,
+              body,
+              pillar,
+            },
+            ...s.journal,
+          ],
+        })),
+      deleteJournal: (id) =>
+        set((s) => ({ journal: s.journal.filter((j) => j.id !== id) })),
+      addMit: (partial) => {
+        const open = get().mits.filter(
+          (m) => m.status === "open" && m.due === todayKey(),
+        ).length;
+        if (open >= 3) return "";
+        const id = uid();
+        const mit: Mit = {
+          id,
+          title: partial?.title || "Untitled",
+          domain: partial?.domain || "craft",
+          startCue: partial?.startCue || "After I sit down, at the desk",
+          due: partial?.due || todayKey(),
+          status: "open",
+          aversiveness: partial?.aversiveness ?? 3,
+          feeling: "",
+          firstSlice: partial?.firstSlice || "The first two minutes",
+          reward: partial?.reward || "Tea after",
+          expectancy: partial?.expectancy ?? 6,
+          value: partial?.value ?? 6,
+          starts: [],
+          bundleWant: partial?.bundleWant || "",
+          woop: partial?.woop,
+        };
+        set((s) => ({ mits: [mit, ...s.mits] }));
+        return id;
+      },
+      updateMit: (id, patch) =>
+        set((s) => ({
+          mits: s.mits.map((m) => (m.id === id ? { ...m, ...patch, id: m.id } : m)),
+        })),
+      completeMit: (id) =>
+        set((s) => ({
+          mits: s.mits.map((m) => (m.id === id ? { ...m, status: "done" } : m)),
+        })),
+      skipMit: (id, feeling) =>
+        set((s) => ({
+          mits: s.mits.map((m) =>
+            m.id === id ? { ...m, status: "skipped", feeling } : m,
+          ),
+        })),
+      logStart: (id, minutes) =>
+        set((s) => ({
+          mits: s.mits.map((m) =>
+            m.id === id
+              ? {
+                  ...m,
+                  starts: [{ at: new Date().toISOString(), minutes }, ...m.starts],
+                }
+              : m,
+          ),
+        })),
+      carryForward: () => {
+        const today = todayKey();
+        set((s) => ({
+          mits: s.mits.map((m) => {
+            if (m.status !== "open") return m;
+            if (m.due >= today) return m;
+            return { ...m, carriedFrom: m.carriedFrom || m.due, due: today };
+          }),
+        }));
+      },
+      setPlan: (domain, patch) =>
+        set((s) => ({
+          plans: s.plans.map((p) => (p.domain === domain ? { ...p, ...patch } : p)),
+        })),
+      addReview: (r) =>
+        set((s) => ({ reviews: [{ id: uid(), ...r }, ...s.reviews] })),
+      setSkill: (skill) => set({ skill }),
+      addSession: (sess) =>
+        set((s) => {
+          if (!s.skill) return s;
+          const session: PracticeSession = {
+            ...sess,
+            id: uid(),
+            at: new Date().toISOString(),
+          };
+          let subskills = s.skill.subskills;
+          if (sess.easy) {
+            subskills = subskills.map((sub) =>
+              sub.id === sess.subskillId && sub.stage !== "autonomous"
+                ? {
+                    ...sub,
+                    stage:
+                      sub.stage === "cognitive" ? "associative" : "autonomous",
+                  }
+                : sub,
+            );
+          }
+          return { skill: { ...s.skill, sessions: [session, ...s.skill.sessions], subskills } };
+        }),
+      addTestScore: (score) =>
+        set((s) => {
+          if (!s.skill) return s;
+          return {
+            skill: {
+              ...s.skill,
+              testScores: [
+                { at: new Date().toISOString(), score },
+                ...s.skill.testScores,
+              ],
+            },
+          };
+        }),
+      setUnlearn: (unlearn) => set({ unlearn }),
+      logUrge: (u) =>
+        set((s) => {
+          if (!s.unlearn) return s;
+          const log: UrgeLog = {
+            ...u,
+            id: uid(),
+            at: new Date().toISOString(),
+            date: todayKey(),
+          };
+          const logs = [log, ...s.unlearn.urgeLogs];
+          const days = new Set(logs.map((l) => l.date));
+          const phase: BadHabit["phase"] =
+            days.size >= 3 ? "active" : s.unlearn.phase;
+          return { unlearn: { ...s.unlearn, urgeLogs: logs, phase } };
+        }),
+      logLapse: (cue, note) =>
+        set((s) => {
+          if (!s.unlearn) return s;
+          return {
+            unlearn: {
+              ...s.unlearn,
+              lapses: [
+                { at: new Date().toISOString(), cue, note },
+                ...s.unlearn.lapses,
+              ],
+            },
+          };
+        }),
+      setAgency: (patch) =>
+        set((s) => ({ agency: { ...s.agency, ...patch } })),
+      saveDailyAgency: (d) =>
+        set((s) => ({
+          agency: {
+            ...s.agency,
+            daily: [
+              { ...d, date: todayKey() },
+              ...s.agency.daily.filter((x) => x.date !== todayKey()),
+            ],
+          },
+        })),
+      addLetter: (body) =>
+        set((s) => ({
+          agency: {
+            ...s.agency,
+            letters: [
+              { id: uid(), at: new Date().toISOString(), body },
+              ...s.agency.letters,
+            ],
+          },
+        })),
+      addContextReview: (r) =>
+        set((s) => ({
+          agency: {
+            ...s.agency,
+            reviews: [
+              { id: uid(), at: new Date().toISOString(), ...r },
+              ...s.agency.reviews,
+            ],
+          },
+        })),
+      upsertBrain: (patch) =>
+        set((s) => {
+          const date = todayKey();
+          const cur = s.brain.find((b) => b.date === date) ?? {
+            date,
+            sleepHours: 0,
+            wakeTime: "07:00",
+            aerobicMin: 0,
+            strength: false,
+            mindMeal: false,
+            social: "",
+            learnMin: 0,
+            downshift: false,
+            drinks: 0,
+            smoked: false,
+          };
+          return {
+            brain: [{ ...cur, ...patch, date }, ...s.brain.filter((b) => b.date !== date)],
+          };
+        }),
+      logSleep: (hours) =>
+        set((s) => ({
+          sleepLog: [
+            { date: todayKey(), hours },
+            ...s.sleepLog.filter((x) => x.date !== todayKey()),
+          ],
+        })),
+      setCheckups: (patch) =>
+        set((s) => ({ checkups: { ...s.checkups, ...patch } })),
+      setHardStair: (id, value) =>
+        set((s) => ({ hardStairs: { ...s.hardStairs, [id]: value } })),
+      pushAlert: (title, body) =>
+        set((s) => ({
+          alerts: [
+            { id: uid(), title, body, at: Date.now() },
+            ...s.alerts,
+          ].slice(0, 6),
+        })),
+      dismissAlert: (id) =>
+        set((s) => ({ alerts: s.alerts.filter((a) => a.id !== id) })),
+      markFired: (key) =>
+        set((s) => ({ firedKeys: [...s.firedKeys, key].slice(-80) })),
+      setDrillBest: (kind, n) =>
+        set((s) => ({ drillBest: { ...s.drillBest, [kind]: n } })),
+      exportJson: () => {
+        const s = get();
+        const { hydrated, ...rest } = s;
+        void hydrated;
+        const dump: Record<string, unknown> = {};
+        for (const k of Object.keys(emptyPersist()) as (keyof PersistShape)[]) {
+          dump[k] = rest[k];
+        }
+        return JSON.stringify(dump, null, 2);
+      },
+      wipeAll: () => set({ ...emptyPersist(), hydrated: true, session: null }),
+      ensureRoutines: () => {
+        const s = get();
+        if (s.routinesSeeded) return;
+        set({
+          routines: s.routines.length ? s.routines : seedRoutines(),
+          routinesSeeded: true,
+        });
+      },
       addFromTemplate: (t) => {
         const routine = templateToRoutine(t);
         set((s) => ({ routines: [routine, ...s.routines] }));
         return routine.id;
       },
-
       addBlankRoutine: () => {
         const routine = blankRoutine();
         set((s) => ({ routines: [routine, ...s.routines] }));
         return routine.id;
       },
-
       saveRoutine: (routine) =>
         set((s) => ({
           routines: s.routines.map((r) => (r.id === routine.id ? routine : r)),
         })),
-
       deleteRoutine: (id) =>
         set((s) => ({
           routines: s.routines.filter((r) => r.id !== id),
           session: s.session?.routineId === id ? null : s.session,
         })),
-
       toggleRoutine: (id) =>
         set((s) => ({
           routines: s.routines.map((r) =>
             r.id === id ? { ...r, enabled: !r.enabled } : r,
           ),
         })),
-
       saveStep: (routineId, step) =>
         set((s) => ({
           routines: s.routines.map((r) =>
@@ -249,7 +744,6 @@ export const useAppStore = create<AppState>()(
               : r,
           ),
         })),
-
       addStep: (routineId, partial) =>
         set((s) => ({
           routines: s.routines.map((r) =>
@@ -270,7 +764,6 @@ export const useAppStore = create<AppState>()(
               : r,
           ),
         })),
-
       deleteStep: (routineId, stepId) =>
         set((s) => ({
           routines: s.routines.map((r) =>
@@ -279,7 +772,6 @@ export const useAppStore = create<AppState>()(
               : r,
           ),
         })),
-
       moveStep: (routineId, from, to) =>
         set((s) => ({
           routines: s.routines.map((r) => {
@@ -291,35 +783,6 @@ export const useAppStore = create<AppState>()(
             return { ...r, steps };
           }),
         })),
-
-      saveReminder: (r) =>
-        set((s) => {
-          const exists = s.reminders.some((x) => x.id === r.id);
-          return {
-            reminders: exists
-              ? s.reminders.map((x) => (x.id === r.id ? r : x))
-              : [r, ...s.reminders],
-          };
-        }),
-
-      addReminder: () => {
-        const r: StandaloneReminder = {
-          id: uid(),
-          title: "New reminder",
-          emoji: "⏰",
-          time: "09:00",
-          days: [1, 2, 3, 4, 5],
-          enabled: true,
-          sound: get().settings.reminderSound,
-          note: "",
-        };
-        set((s) => ({ reminders: [r, ...s.reminders] }));
-        return r.id;
-      },
-
-      deleteReminder: (id) =>
-        set((s) => ({ reminders: s.reminders.filter((r) => r.id !== id) })),
-
       toggleCheck: (routineId, stepId, date = todayKey()) => {
         const key = checkKey(date, routineId);
         set((s) => {
@@ -346,7 +809,6 @@ export const useAppStore = create<AppState>()(
                   totalSteps: routine.steps.length,
                   skippedSteps: 0,
                   durationSec: 0,
-                  stepActualMs: routine.steps.map((st) => st.durationSec * 1000),
                 },
                 ...completions,
               ];
@@ -355,28 +817,24 @@ export const useAppStore = create<AppState>()(
           return { checks, completions };
         });
       },
-
       startRun: (routineId) => {
         const routine = get().routines.find((r) => r.id === routineId);
         if (!routine || routine.steps.length === 0) return;
         const first = routine.steps[0];
-        const session: RunSession = {
-          routineId,
-          stepIndex: 0,
-          status: "running",
-          stepDurationMs: first.durationSec * 1000,
-          segmentStartedAt: Date.now(),
-          elapsedBeforePause: 0,
-          skipped: [],
-          completed: [],
-          sessionStartedAt: Date.now(),
-          spoken: { "0": true },
-          stepActualMs: [],
-        };
-        set({ session });
-        cueStep(get().settings, first, routine.steps.length === 1);
+        set({
+          session: {
+            routineId,
+            stepIndex: 0,
+            status: "running",
+            stepDurationMs: first.durationSec * 1000,
+            segmentStartedAt: Date.now(),
+            elapsedBeforePause: 0,
+            skipped: [],
+            completed: [],
+            sessionStartedAt: Date.now(),
+          },
+        });
       },
-
       pauseRun: () => {
         const session = get().session;
         if (!session || session.status !== "running") return;
@@ -389,7 +847,6 @@ export const useAppStore = create<AppState>()(
           },
         });
       },
-
       resumeRun: () => {
         const session = get().session;
         if (!session || (session.status !== "paused" && session.status !== "overtime")) return;
@@ -401,7 +858,6 @@ export const useAppStore = create<AppState>()(
           },
         });
       },
-
       adjustTime: (deltaMs) => {
         const session = get().session;
         if (!session) return;
@@ -412,81 +868,75 @@ export const useAppStore = create<AppState>()(
           },
         });
       },
-
       completeStep: () => {
-        const { session, routines, settings } = get();
+        const { session, routines } = get();
         if (!session) return;
         const routine = routines.find((r) => r.id === session.routineId);
         if (!routine) return;
         const now = Date.now();
-        const used = session.stepDurationMs - remainingMs(session, now);
-        const actual = [...session.stepActualMs];
-        actual[session.stepIndex] = Math.max(0, used);
         const completed = session.completed.includes(session.stepIndex)
           ? session.completed
           : [...session.completed, session.stepIndex];
-
         const nextIndex = session.stepIndex + 1;
         if (nextIndex >= routine.steps.length) {
-          const doneSession: RunSession = {
-            ...session,
-            status: "done",
-            completed,
-            stepActualMs: actual,
+          const doneSession: RunSession = { ...session, status: "done", completed };
+          const completion: RoutineCompletion = {
+            id: uid(),
+            routineId: routine.id,
+            date: todayKey(),
+            startedAt: doneSession.sessionStartedAt,
+            finishedAt: now,
+            completedSteps: completed.length,
+            totalSteps: routine.steps.length,
+            skippedSteps: session.skipped.length,
+            durationSec: Math.round((now - doneSession.sessionStartedAt) / 1000),
           };
-          const completion = finishFrom(doneSession, routine);
           set((s) => ({
             session: doneSession,
             completions: [completion, ...s.completions],
           }));
-          if (settings.soundEnabled) playSound(settings.completeSound, settings.volume);
-          if (settings.voiceEnabled) speak("Routine complete. Nice work.", settings.volume);
           return;
         }
-
         const next = routine.steps[nextIndex];
-        const nextSession: RunSession = {
-          ...session,
-          stepIndex: nextIndex,
-          status: "running",
-          stepDurationMs: next.durationSec * 1000,
-          segmentStartedAt: now,
-          elapsedBeforePause: 0,
-          completed,
-          stepActualMs: actual,
-          spoken: { ...session.spoken, [String(nextIndex)]: true },
-        };
-        set({ session: nextSession });
-        cueStep(settings, next, nextIndex === routine.steps.length - 1);
+        set({
+          session: {
+            ...session,
+            stepIndex: nextIndex,
+            status: "running",
+            stepDurationMs: next.durationSec * 1000,
+            segmentStartedAt: now,
+            elapsedBeforePause: 0,
+            completed,
+          },
+        });
       },
-
       skipStep: () => {
-        const { session, routines, settings } = get();
+        const { session, routines } = get();
         if (!session) return;
         const routine = routines.find((r) => r.id === session.routineId);
         if (!routine) return;
         const now = Date.now();
-        const used = session.stepDurationMs - remainingMs(session, now);
-        const actual = [...session.stepActualMs];
-        actual[session.stepIndex] = Math.max(0, used);
         const skipped = session.skipped.includes(session.stepIndex)
           ? session.skipped
           : [...session.skipped, session.stepIndex];
         const nextIndex = session.stepIndex + 1;
         if (nextIndex >= routine.steps.length) {
-          const doneSession: RunSession = {
-            ...session,
-            status: "done",
-            skipped,
-            stepActualMs: actual,
+          const doneSession: RunSession = { ...session, status: "done", skipped };
+          const completion: RoutineCompletion = {
+            id: uid(),
+            routineId: routine.id,
+            date: todayKey(),
+            startedAt: doneSession.sessionStartedAt,
+            finishedAt: now,
+            completedSteps: session.completed.length,
+            totalSteps: routine.steps.length,
+            skippedSteps: skipped.length,
+            durationSec: Math.round((now - doneSession.sessionStartedAt) / 1000),
           };
-          const completion = finishFrom(doneSession, routine);
           set((s) => ({
             session: doneSession,
             completions: [completion, ...s.completions],
           }));
-          if (settings.soundEnabled) playSound(settings.completeSound, settings.volume);
-          if (settings.voiceEnabled) speak("Routine complete.", settings.volume);
           return;
         }
         const next = routine.steps[nextIndex];
@@ -499,500 +949,163 @@ export const useAppStore = create<AppState>()(
             segmentStartedAt: now,
             elapsedBeforePause: 0,
             skipped,
-            stepActualMs: actual,
-            spoken: { ...session.spoken, [String(nextIndex)]: true },
           },
         });
-        cueStep(settings, next, nextIndex === routine.steps.length - 1);
       },
-
       abortRun: () => set({ session: null }),
-
-      dismissAlert: (id) =>
-        set((s) => ({ alerts: s.alerts.filter((a) => a.id !== id) })),
-
-      pushAlert: (alert) =>
+      ensureTasks: () => {
+        const s = get();
+        if (s.tasksSeeded) return;
+        set({
+          tasks: s.tasks.length ? s.tasks : seedTasks(),
+          taskProjects: s.taskProjects.length ? s.taskProjects : DEFAULT_TASK_PROJECTS,
+          tasksSeeded: true,
+        });
+      },
+      addTask: (partial) => {
+        const id = uid();
+        const task: Task = {
+          id,
+          title: partial?.title || "Untitled",
+          notes: partial?.notes || "",
+          projectId: partial?.projectId || "inbox",
+          priority: partial?.priority ?? 4,
+          dueDate: partial?.dueDate ?? todayKey(),
+          reminder: partial?.reminder || "",
+          repeat: partial?.repeat || "none",
+          completedAt: null,
+          createdAt: new Date().toISOString(),
+          carriedFrom: partial?.carriedFrom,
+        };
+        set((s) => ({ tasks: [task, ...s.tasks] }));
+        return id;
+      },
+      updateTask: (id, patch) =>
         set((s) => ({
-          alerts: [
-            { ...alert, id: uid(), createdAt: Date.now() },
-            ...s.alerts,
-          ].slice(0, 12),
+          tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...patch, id: t.id } : t)),
         })),
-
-      markFired: (key) =>
+      toggleTask: (id) =>
         set((s) => {
-          const today = todayKey();
-          const kept = s.firedKeys.filter((k) => k.startsWith(today) || k.includes(today));
-          return { firedKeys: [...kept, key].slice(-200) };
+          const current = s.tasks.find((t) => t.id === id);
+          if (!current) return s;
+          if (current.completedAt) {
+            return {
+              tasks: s.tasks.map((t) =>
+                t.id === id ? { ...t, completedAt: null } : t,
+              ),
+            };
+          }
+          const completedAt = new Date().toISOString();
+          const nextDue = nextOccurrence(current.dueDate || todayKey(), current.repeat);
+          const rest = s.tasks.map((t) =>
+            t.id === id ? { ...t, completedAt } : t,
+          );
+          if (!nextDue) return { tasks: rest };
+          const follow: Task = {
+            ...current,
+            id: uid(),
+            dueDate: nextDue,
+            completedAt: null,
+            createdAt: new Date().toISOString(),
+            carriedFrom: undefined,
+          };
+          return { tasks: [follow, ...rest] };
         }),
-
-      completeOnboarding: (plantName, templateIds) => {
-        const picked = templateIds
-          .map((id) => TEMPLATES.find((t) => t.id === id))
-          .filter((t): t is Template => Boolean(t))
-          .map((t) => templateToRoutine(t));
-        const fallback = picked.length > 0 ? picked : seedRoutines().slice(0, 2);
+      deleteTask: (id) =>
+        set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) })),
+      addTaskProject: (name) => {
+        const id = uid();
         set((s) => ({
-          routines: [
-            ...fallback,
-            ...s.routines.filter((r) => !r.id.startsWith("seed-")),
-          ],
-          reminders: s.reminders.length ? s.reminders : seedReminders(),
-          habits:
-            s.habits.length > 0
-              ? s.habits
-              : DEFAULT_HABITS.map((h) => ({ ...h, id: uid(), createdAt: Date.now() })),
-          recipes:
-            s.recipes.length > 0
-              ? s.recipes
-              : [
-                  {
-                    id: uid(),
-                    createdAt: Date.now(),
-                    anchor: "I sit at my desk",
-                    behavior: "open the stuck task for two minutes",
-                    celebration: "say 'started'",
-                    lastDoneDate: null,
-                    doneCount: 0,
-                  },
-                ],
-          hasSeeded: true,
-          settings: {
-            ...s.settings,
-            plantName: plantName.trim() || "Sprout",
-            onboardingDone: true,
-          },
+          taskProjects: [...s.taskProjects, { id, name }],
         }));
+        return id;
       },
-
-      setCompletionMood: (completionId, mood) =>
-        set((s) => ({
-          completions: s.completions.map((c) =>
-            c.id === completionId ? { ...c, mood } : c,
-          ),
-        })),
-
-      // ForgeHealth actions
-      setAccount: (account) => {
-        // Save current state before switching
-        const currentAccount = get().account;
-        if (currentAccount) {
-          const key = `forgehealth-${currentAccount.id}`;
-          localStorage.setItem(key, JSON.stringify(get()));
-        }
-        
-        // Load new account state
-        const newKey = `forgehealth-${account.id}`;
-        const stored = localStorage.getItem(newKey);
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            set({ ...parsed, account, hydrated: true });
-            return;
-          } catch {}
-        }
-        
-        // New account - set with defaults
-        set({ account });
-      },
-
-      startChallenge: (durationDays, buddyEmail) => {
-        const account = get().account;
-        if (!account) return;
-        const challenge: Challenge = {
-          id: uid(),
-          accountId: account.id,
-          buddyEmail,
-          status: "active",
-          startDate: todayKey(),
-          durationDays,
-          agreedAt: Date.now(),
-          lastCheckIn: todayKey(),
-          currentStreak: 0,
-          longestStreak: 0,
-          relapses: [],
-          xp: 0,
-          willpower: 100,
-        };
-        set((s) => ({
-          challenge,
-          habits:
-            s.habits.length > 0
-              ? s.habits
-              : DEFAULT_HABITS.map((h) => ({ ...h, id: uid(), createdAt: Date.now() })),
-        }));
-        if (typeof BroadcastChannel !== "undefined") {
-          const bc = new BroadcastChannel("forgehealth-challenge");
-          bc.postMessage({ 
-            type: "challenge-started", 
-            accountId: account.id,
-            challenge 
-          });
-          bc.close();
-        }
-        // Save buddy snapshot to shared localStorage
-        if (buddyEmail) {
-          localStorage.setItem(`forgehealth-buddy-${account.id}`, JSON.stringify({
-            accountId: account.id,
-            email: account.email,
-            displayName: account.displayName,
-            challenge,
-            timestamp: Date.now()
-          }));
-        }
-      },
-
-      checkInChallenge: () => {
-        set((s) => {
-          if (!s.challenge || s.challenge.status !== "active") return s;
-          const today = todayKey();
-          if (s.challenge.lastCheckIn === today) return s;
-          const newStreak = s.challenge.currentStreak + 1;
-          const xpGain = 30;
-          const willpowerGain = 5;
-          const updatedChallenge = {
-            ...s.challenge,
-            lastCheckIn: today,
-            currentStreak: newStreak,
-            longestStreak: Math.max(newStreak, s.challenge.longestStreak),
-            xp: s.challenge.xp + xpGain,
-            willpower: Math.min(100, s.challenge.willpower + willpowerGain),
-          };
-          
-          // Broadcast to buddy
-          if (typeof BroadcastChannel !== "undefined" && s.account) {
-            const bc = new BroadcastChannel("forgehealth-challenge");
-            bc.postMessage({ 
-              type: "check-in", 
-              accountId: s.account.id,
-              challenge: updatedChallenge 
-            });
-            bc.close();
-            
-            // Update buddy snapshot
-            if (s.challenge.buddyEmail) {
-              localStorage.setItem(`forgehealth-buddy-${s.account.id}`, JSON.stringify({
-                accountId: s.account.id,
-                email: s.account.email,
-                displayName: s.account.displayName,
-                challenge: updatedChallenge,
-                timestamp: Date.now()
-              }));
-            }
-          }
-          
-          return { challenge: updatedChallenge };
-        });
-      },
-
-      recordRelapse: (note) => {
-        set((s) => {
-          if (!s.challenge || s.challenge.status !== "active") return s;
-          const relapse: import("@/lib/types").RelapseEntry = {
-            id: uid(),
-            date: todayKey(),
-            timestamp: Date.now(),
-            note,
-          };
-          const xpLoss = 50;
-          const willpowerLoss = 30;
-          return {
-            challenge: {
-              ...s.challenge,
-              currentStreak: 0,
-              relapses: [...s.challenge.relapses, relapse],
-              xp: Math.max(0, s.challenge.xp - xpLoss),
-              willpower: Math.max(0, s.challenge.willpower - willpowerLoss),
-            },
-          };
-        });
-      },
-
-      addXp: (amount) => {
-        set((s) => {
-          if (!s.challenge) return s;
-          return { challenge: { ...s.challenge, xp: s.challenge.xp + amount } };
-        });
-      },
-
-      adjustWillpower: (delta) => {
-        set((s) => {
-          if (!s.challenge) return s;
-          return {
-            challenge: {
-              ...s.challenge,
-              willpower: Math.max(0, Math.min(100, s.challenge.willpower + delta)),
-            },
-          };
-        });
-      },
-
-      addHabit: (habit) => {
-        const newHabit: Habit = { ...habit, id: uid(), createdAt: Date.now() };
-        set((s) => ({ habits: [...s.habits, newHabit] }));
-      },
-
-      toggleHabit: (habitId) => {
-        set((s) => ({
-          habits: s.habits.map((h) => (h.id === habitId ? { ...h, enabled: !h.enabled } : h)),
-        }));
-      },
-
-      deleteHabit: (habitId) => {
-        set((s) => ({
-          habits: s.habits.filter((h) => h.id !== habitId),
-          habitCompletions: s.habitCompletions.filter((hc) => hc.habitId !== habitId),
-        }));
-      },
-
-      completeHabit: (habitId, count = 1) => {
-        const habit = get().habits.find((h) => h.id === habitId);
-        if (!habit) return;
-        const today = todayKey();
-        const existing = get().habitCompletions.find(
-          (hc) => hc.habitId === habitId && hc.date === today
-        );
-        if (existing) {
-          set((s) => ({
-            habitCompletions: s.habitCompletions.map((hc) =>
-              hc.id === existing.id ? { ...hc, count: hc.count + count } : hc
-            ),
-          }));
-        } else {
-          const completion: HabitCompletion = {
-            id: uid(),
-            habitId,
-            date: today,
-            timestamp: Date.now(),
-            count,
-          };
-          set((s) => ({ habitCompletions: [...s.habitCompletions, completion] }));
-        }
-        get().addXp(habit.xpPerCompletion * count);
-        const monster = get().monster;
-        if (monster && monster.currentHp > 0) {
-          get().damageMonster(habit.xpPerCompletion * count);
-        }
-      },
-
-      addMoodEntry: (entry) => {
-        const newEntry: MoodEntry = { ...entry, id: uid(), timestamp: Date.now() };
-        set((s) => ({ moodEntries: [newEntry, ...s.moodEntries] }));
-      },
-
-      updateMoodEntry: (id, patch) => {
-        set((s) => ({
-          moodEntries: s.moodEntries.map((m) => (m.id === id ? { ...m, ...patch } : m)),
-        }));
-      },
-
-      deleteMoodEntry: (id) => {
-        set((s) => ({ moodEntries: s.moodEntries.filter((m) => m.id !== id) }));
-      },
-
-      addGratitude: (text) => {
-        const entry: GratitudeEntry = {
-          id: uid(),
-          date: todayKey(),
-          timestamp: Date.now(),
-          text,
-        };
-        set((s) => ({ gratitudeEntries: [entry, ...s.gratitudeEntries] }));
-      },
-
-      spawnMonster: () => {
-        const level = Math.floor(Math.random() * 3) + 1;
-        const monsters = [
-          { name: "Temptation Beast", emoji: "👹" },
-          { name: "Urge Demon", emoji: "😈" },
-          { name: "Craving Dragon", emoji: "🐉" },
-        ];
-        const monster = monsters[Math.floor(Math.random() * monsters.length)];
-        const maxHp = 100 * level;
-        set({
-          monster: {
-            id: uid(),
-            name: monster.name,
-            emoji: monster.emoji,
-            maxHp,
-            currentHp: maxHp,
-            level,
-          },
-        });
-      },
-
-      damageMonster: (damage) => {
-        set((s) => {
-          if (!s.monster) return s;
-          const newHp = Math.max(0, s.monster.currentHp - damage);
-          if (newHp === 0) {
-            get().addXp(s.monster.maxHp);
-            return { monster: null };
-          }
-          return { monster: { ...s.monster, currentHp: newHp } };
-        });
-      },
-
-      ensureDefaultHabits: () => {
-        if (get().habits.length > 0) return;
-        set({
-          habits: DEFAULT_HABITS.map((h) => ({ ...h, id: uid(), createdAt: Date.now() })),
-        });
-      },
-
-      saveUnstick: ({ task, aversion, firstAction, reward }) => {
-        const session: UnstickSession = {
-          id: uid(),
-          createdAt: Date.now(),
-          date: todayKey(),
-          task: task.trim(),
-          aversion,
-          firstAction: firstAction.trim(),
-          reward: reward.trim(),
-          started: true,
-          completed: false,
-          durationSec: 0,
-        };
-        set((s) => ({ unsticks: [session, ...s.unsticks] }));
-        return session.id;
-      },
-
-      finishUnstick: (id, completed, durationSec) => {
-        set((s) => ({
-          unsticks: s.unsticks.map((u) =>
-            u.id === id ? { ...u, completed, durationSec, started: true } : u,
-          ),
-        }));
-        if (completed) {
-          get().addXp(20);
-          const startHabit = get().habits.find((h) => h.type === "start" && h.enabled);
-          if (startHabit) get().completeHabit(startHabit.id);
-        }
-      },
-
-      addWoop: (w) => {
-        const card: WoopCard = { ...w, id: uid(), createdAt: Date.now() };
-        set((s) => ({ woops: [card, ...s.woops] }));
-      },
-
-      deleteWoop: (id) => set((s) => ({ woops: s.woops.filter((w) => w.id !== id) })),
-
-      addRecipe: (r) => {
-        const recipe: TinyRecipe = {
-          ...r,
-          id: uid(),
-          createdAt: Date.now(),
-          lastDoneDate: null,
-          doneCount: 0,
-        };
-        set((s) => ({ recipes: [recipe, ...s.recipes] }));
-      },
-
-      completeRecipe: (id) => {
-        const today = todayKey();
-        set((s) => ({
-          recipes: s.recipes.map((r) =>
-            r.id === id && r.lastDoneDate !== today
-              ? { ...r, lastDoneDate: today, doneCount: r.doneCount + 1 }
-              : r,
-          ),
-        }));
-        get().addXp(10);
-      },
-
-      deleteRecipe: (id) => set((s) => ({ recipes: s.recipes.filter((r) => r.id !== id) })),
-
-      rateAutomaticity: (habitId, score) => {
-        const rating: AutomaticityRating = {
-          id: uid(),
-          habitId,
-          date: todayKey(),
-          score: Math.max(1, Math.min(7, score)),
-        };
-        set((s) => ({
-          autoRatings: [
-            rating,
-            ...s.autoRatings.filter((a) => !(a.habitId === habitId && a.date === rating.date)),
-          ],
-        }));
-      },
-
-      setProcrastination: (style) => {
-        set({ procrastination: { style, answeredAt: Date.now() } });
-      },
+      carryForwardTasks: () =>
+        set((s) => ({ tasks: applyCarryForward(s.tasks) })),
     }),
     {
-      name: "forgehealth-v1",
+      name: "spire-v1",
       storage: createJSONStorage(() => localStorage),
       skipHydration: true,
-      partialize: (s) => ({
-        routines: s.routines,
-        reminders: s.reminders,
-        completions: s.completions,
-        checks: s.checks,
-        settings: s.settings,
-        session: s.session,
-        alerts: s.alerts,
-        firedKeys: s.firedKeys,
-        hasSeeded: s.hasSeeded,
-        account: s.account,
-        challenge: s.challenge,
-        habits: s.habits,
-        habitCompletions: s.habitCompletions,
-        moodEntries: s.moodEntries,
-        gratitudeEntries: s.gratitudeEntries,
-        monster: s.monster,
-        unsticks: s.unsticks,
-        woops: s.woops,
-        recipes: s.recipes,
-        autoRatings: s.autoRatings,
-        procrastination: s.procrastination,
-      }),
+      partialize: (s) => {
+        const persistable = {} as PersistShape;
+        const empty = emptyPersist();
+        (Object.keys(empty) as (keyof PersistShape)[]).forEach((k) => {
+          persistable[k] = s[k] as never;
+        });
+        return persistable;
+      },
       merge: (persisted, current) => {
-        const p = (persisted ?? {}) as Partial<PersistShape>;
-        const settings = {
-          ...DEFAULT_SETTINGS,
-          ...(p.settings ?? {}),
-        };
-        // Legacy installs already had routines — skip onboarding once.
-        if (
-          !settings.onboardingDone &&
-          Array.isArray(p.routines) &&
-          p.routines.length > 0
-        ) {
-          settings.onboardingDone = true;
-          if (!settings.plantName) settings.plantName = "Sprout";
-        }
+        const p = (persisted || {}) as Partial<PersistShape>;
         return {
           ...current,
           ...p,
-          settings,
-          hydrated: false,
+          settings: { ...DEFAULT_SETTINGS, ...p.settings },
+          checkIns: p.checkIns ?? [],
+          habits: p.habits ?? [],
+          journal: p.journal ?? [],
+          mits: p.mits ?? [],
+          plans: p.plans?.length ? p.plans : emptyPlans(),
+          reviews: p.reviews ?? [],
+          skill: p.skill ?? null,
+          unlearn: p.unlearn ?? null,
+          agency: { ...structuredClone(DEFAULT_AGENCY), ...p.agency },
+          brain: p.brain ?? [],
+          checkups: { hearing: "", vision: "", clinician: "", ...p.checkups },
+          sleepLog: p.sleepLog ?? [],
+          hardStairs: p.hardStairs ?? {},
+          alerts: p.alerts ?? [],
+          firedKeys: p.firedKeys ?? [],
+          drillBest: p.drillBest ?? { speed: 0, reason: 0 },
+          routines: p.routines ?? [],
+          completions: p.completions ?? [],
+          checks: p.checks ?? {},
+          routinesSeeded: p.routinesSeeded ?? false,
+          tasks: p.tasks ?? [],
+          taskProjects: p.taskProjects?.length ? p.taskProjects : DEFAULT_TASK_PROJECTS,
+          tasksSeeded: p.tasksSeeded ?? false,
         };
       },
     },
   ),
 );
 
-export function checksFor(checks: Checks, routineId: string, date = todayKey()) {
-  return checks[checkKey(date, routineId)] ?? [];
+export function lastCheckIn(state: { checkIns: CheckIn[] }): CheckIn | null {
+  return state.checkIns[0] ?? null;
 }
 
-export function hydrateStore() {
-  let done = false;
-  const finish = () => {
-    if (done) return;
-    done = true;
-    const s = useAppStore.getState();
-    if (!s.hasSeeded) s.seedIfNeeded();
-    s.setHydrated();
-  };
-  void Promise.resolve(useAppStore.persist.rehydrate()).then(finish, finish);
-  if (useAppStore.persist.hasHydrated()) finish();
+export function todaysMits(state: { mits: Mit[] }, day = todayKey()) {
+  return state.mits.filter((m) => m.due === day);
 }
 
-export function formatCue(step: Step) {
-  return `${step.emoji} ${step.title}`;
+export function dueHabits(state: { habits: Habit[] }, day = todayKey()) {
+  const dow = weekday(day);
+  return state.habits.filter((h) => h.daysOfWeek.includes(dow));
 }
 
-export type { RoutineReminder };
+export function lastNightSleep(state: { sleepLog: { date: string; hours: number }[] }) {
+  const y = addDays(todayKey(), -1);
+  return (
+    state.sleepLog.find((s) => s.date === todayKey()) ??
+    state.sleepLog.find((s) => s.date === y)
+  );
+}
+
+export function weekCheckIns(state: { checkIns: CheckIn[] }) {
+  const start = weekStart();
+  return state.checkIns.filter((c) => c.date >= start);
+}
+
+export function lowestFrom(state: { checkIns: CheckIn[] }): Pillar {
+  const c = lastCheckIn(state);
+  if (!c) return "physical";
+  let min: Pillar = "spiritual";
+  let v = 99;
+  PILLARS.forEach((p) => {
+    if (c.scores[p] < v) {
+      v = c.scores[p];
+      min = p;
+    }
+  });
+  return min;
+}

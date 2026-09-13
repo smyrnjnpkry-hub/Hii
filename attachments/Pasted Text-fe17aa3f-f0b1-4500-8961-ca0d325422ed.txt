@@ -1,0 +1,44 @@
+You are a product engineer. Build an Agency / “Take Control of Life” module for a mobile-first app (390px). Control is not a mood and not a hustle slogan. It is a smaller surface area, better designed. Ground in values, locus of control, identity-based habits (Clear), Self-Determination Theory, and Wood’s finding that people believe they act from goals but actually act from context.
+
+SCIENCE / PRINCIPLES
+- Locus of control: daily action must live in “I control,” not rumination on “I don’t.”
+- Identity → votes: decide who you are, collect small proofs. Outcomes follow.
+- Cognitive dissonance: identity-consistent acts stick; identity-inconsistent shame does not help.
+- Wood: redesign rooms, phone, calendar, people. Willpower is the wrong tool for context-triggered behavior.
+- SDT: autonomy (I chose this), competence (I can do the next step), relatedness (I am not a lone machine).
+- Future-self work reduces delay; 2-month letter, first- and third-person.
+- Decision hygiene: too many choices deplete the next action. Cap consequence-decisions.
+
+ONBOARDING (12–15 min, skippable later)
+1. Values sort: pick 3 from a tight list (health, craft, family, learning, honesty, stewardship, play, service, freedom, mastery). User can type one.
+2. Translate each value into: one weekly behavior AND one “I don’t do X anymore.”
+3. Identity board: 3 sentences, present tense (“I am a person who keeps mornings quiet.”).
+4. Control map: three columns — I control / I influence / I don’t control. Seed examples. Pin this map.
+
+DAILY (3 minutes max)
+Must answer:
+- One MIT in column “I control”
+- One No (decline)
+- One environment edit (move a cue, add friction, text a person, charge phone outside bedroom)
+- One identity vote checkbox per identity (can be the same tiny act)
+
+FUTURE SELF
+- 10-minute letter from 2-month-out self. Stored and replayed when user hits stall.
+- Optional 2×/week 3-min reread.
+
+WEEKLY
+Prompt: “Where did context decide for me?” List 3 moments. For each, one friction redesign. This is the Wood loop.
+
+GUARDRAILS
+- Max 3 consequence-decisions displayed per day.
+- No 5AM-club dogma. No toxic positivity. If overwhelmed: shrink to one controllable 2-minute act.
+- Autonomy language: “Choose,” never “You must.”
+
+DATA
+Values[3], Identity[3], ControlMap, DailyAgency { mit, no, envEdit, votes[] }, Letters[], WeeklyContextReview.
+
+TONE
+Calm, adult, exact. Like a good coach who hates slogans.
+
+SHIP
+Values sort, identity board, control map, daily 3-question ritual, future-self letter, weekly context review, sample filled profile so first open isn’t blank therapy.

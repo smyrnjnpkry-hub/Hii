@@ -6,23 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function uid() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    try {
-      return crypto.randomUUID();
-    } catch {
-      // insecure context
-    }
-  }
-  const bytes = new Uint8Array(16);
-  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
-    crypto.getRandomValues(bytes);
-  } else {
-    for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
-  }
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  return crypto.randomUUID();
 }
 
 export function todayKey(d = new Date()) {
@@ -32,14 +16,66 @@ export function todayKey(d = new Date()) {
   return `${y}-${m}-${day}`;
 }
 
-export function shiftDateKey(key: string, deltaDays: number) {
-  const d = new Date(`${key}T12:00:00`);
-  d.setDate(d.getDate() + deltaDays);
-  return todayKey(d);
+export function addDays(key: string, n: number) {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + n);
+  return todayKey(dt);
 }
 
-export function weekday(d = new Date()) {
-  return d.getDay();
+export function weekday(key = todayKey()) {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d).getDay();
+}
+
+export function weekStart(key = todayKey()) {
+  const dow = weekday(key);
+  const back = dow === 0 ? 6 : dow - 1;
+  return addDays(key, -back);
+}
+
+export function formatShortDate(key: string) {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
+export function formatLongDate(key: string) {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+}
+
+export function hoursUntil(isoOrKey: string) {
+  const end =
+    isoOrKey.length <= 10 ? new Date(`${isoOrKey}T23:59:59`) : new Date(isoOrKey);
+  return Math.max(0, Math.round((end.getTime() - Date.now()) / 36e5));
+}
+
+export function clamp(n: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, n));
+}
+
+export function mean(nums: number[]) {
+  if (!nums.length) return 0;
+  return nums.reduce((a, b) => a + b, 0) / nums.length;
+}
+
+export function estimateMinutes(text: string) {
+  const t = text.toLowerCase();
+  const m = t.match(/(\d+)\s*(min|minute)/);
+  if (m) return Number(m[1]);
+  if (/\b(hour|60)\b/.test(t)) return 60;
+  if (/\b(second|breath|gratitude|awe)\b/.test(t)) return 1;
+  return 5;
+}
+
+export function shrinkAct(act: string) {
+  const mins = estimateMinutes(act);
+  if (mins > 2) return act.replace(/\d+\s*(min|minute)s?/i, "2 minutes");
+  if (/walk/.test(act)) return "Put on shoes and step outside";
+  if (/read/.test(act)) return "Open the book and read one paragraph";
+  return "The first 30 seconds of: " + act;
 }
 
 export function pad2(n: number) {
@@ -67,46 +103,11 @@ export function formatDuration(sec: number) {
 
 export function formatTime(hhmm: string) {
   const [hStr, mStr] = hhmm.split(":");
-  let h = Number(hStr);
+  const h = Number(hStr);
   const m = Number(mStr);
   const am = h < 12;
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${h12}:${pad2(m)} ${am ? "AM" : "PM"}`;
 }
 
-export function addMinutes(hhmm: string, minutes: number) {
-  const [hStr, mStr] = hhmm.split(":");
-  const total = Number(hStr) * 60 + Number(mStr) + minutes;
-  const wrapped = ((total % 1440) + 1440) % 1440;
-  return `${pad2(Math.floor(wrapped / 60))}:${pad2(wrapped % 60)}`;
-}
-
-export function parseHm(hhmm: string) {
-  const [h, m] = hhmm.split(":").map(Number);
-  return h * 60 + m;
-}
-
-export function nowHm() {
-  const d = new Date();
-  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-}
-
-export function greeting(d = new Date()) {
-  const h = d.getHours();
-  if (h < 5) return "Still up";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 21) return "Good evening";
-  return "Winding down";
-}
-
 export const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"] as const;
-export const DAY_NAMES = [
-  "Sun",
-  "Mon",
-  "Tue",
-  "Wed",
-  "Thu",
-  "Fri",
-  "Sat",
-] as const;

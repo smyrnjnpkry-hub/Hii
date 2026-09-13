@@ -1,0 +1,52 @@
+You are a product engineer and psychologist. Build a complete Anti-Procrastination “Start Engine” for a mobile-first app (390px). Procrastination is NOT laziness and NOT a calendar problem. Implement Pychyl/Sirois emotion-regulation science and Steel’s Temporal Motivation Theory.
+
+SCIENCE YOU MUST IMPLEMENT
+- Procrastination = short-term mood repair. People delay to escape boredom, anxiety, shame, confusion, or ambiguity. Relief reinforces the loop (Pychyl & Sirois).
+- Steel equation, always visible as four levers:
+  Motivation = (Expectancy × Value) / (Impulsiveness × Delay)
+  Expectancy = “can I do this?”, Value = “does this matter now?”, Impulsiveness = pull of now, Delay = how far the payoff feels.
+  Steel 2007: strongest predictors are task aversiveness, impulsiveness, delay, low self-efficacy.
+- Attention control, energy, and automaticity explained \~74% of variance in large TMT work — schedule around energy.
+- 2025 RCT (n=1035, Temporal Decision Model): affect labeling + subtask generation + picking a reward raised completion likelihood.
+- Implementation intentions for the START, not the whole job.
+- Self-forgiveness after delay reduces later delay (Wohl, Pychyl, Bennett). Shame increases delay. Ban streak humiliation.
+- 3-minute mindfulness / self-compassion cuts state procrastination (Sirois).
+- Future-self contact: 10 min, 2×/week, imagine 2-month-out self.
+- Show remaining time in hours (“48 hours”), not “2 days.”
+- Temptation bundling (Milkman): a want is allowed ONLY during the should-task (+51% gym visits in original trial).
+- WOOP (Oettingen): Wish, Outcome, Obstacle, Plan. Fantasy alone lowers effort.
+- CBT tools: split, reframe, behavioral experiment — not therapy-app claims.
+
+THE STALL FLOW (must be ≤45 seconds)
+When user opens a delayed task or taps “I’m stalling”:
+1. Affect label: pick or type the feeling (anxious, bored, ashamed, unclear, tired, resentful).
+2. App writes one sentence: “You are delaying to not feel [X]. Starting does not require feeling ready.”
+3. Auto-split into a 2-minute first slice. User can edit.
+4. Pick a small immediate reward (tea, 1 song, 5-min walk after).
+5. One button: “Start the ugly first minute.”
+
+START SPRINT
+- 10-minute focus timer. Finishing 10 minutes is SUCCESS even if the whole task remains.
+- Optional 3-minute breath before hard tasks.
+- Phone-friction prompt: “Put the phone face down or in another room” (cuts Impulsiveness).
+- After sprint: log start (not hours). Offer another 10 or stop with credit.
+
+LEVER PANEL (always on the task)
+Four sliders/actions:
+- Raise Expectancy: show a past win, shrink the slice, add a checklist of how.
+- Raise Value: one sentence “why this matters to 2-month-out me today.”
+- Cut Impulsiveness: enable bundling lock + distraction list.
+- Cut Delay: convert due date to hours; book a start cue now, not a deadline.
+
+FORGIVENESS
+If a day is all delay: a short self-compassion card, then one next cue. Copy must not say “you broke your streak.”
+
+DATA
+Task { id, title, aversiveness 1–5, feeling, firstSlice, reward, expectancy, value, delayHours, starts[], sprints[], woop?, bundleWant? }
+Count STARTS as the primary metric.
+
+TONE
+Non-judgmental, precise, slightly dry. No “crush it.” No shame red.
+
+SHIP
+Stall flow, sprint timer, lever panel, WOOP card, bundling setup, forgiveness state, hours-to-deadline, sample delayed tasks so the demo works on first open.

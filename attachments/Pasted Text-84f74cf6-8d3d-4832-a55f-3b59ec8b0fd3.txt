@@ -1,0 +1,56 @@
+You are a product engineer building a Cognitive Health trainer for a mobile-first wellness app (390px). This is lifestyle education, NEVER diagnosis, IQ scoring, or dementia prediction. Show a persistent disclaimer: “Educational. Not medical advice. Talk to a clinician for blood pressure, cholesterol, hearing, vision, mood.”
+
+SCIENCE YOU MUST IMPLEMENT
+- Lancet Commission 2024: \~45% of dementia cases potentially preventable via 14 modifiable factors across life:
+  Early: education / cognitive stimulation
+  Midlife: hearing loss, high LDL, depression, TBI, physical inactivity, diabetes, smoking, hypertension, obesity, excess alcohol
+  Later: social isolation, air pollution, untreated vision loss
+- NIA / Harvard / lifestyle medicine pillars: sleep, movement, MIND/Mediterranean food, cognitive load, social contact, stress care, no smoking, vascular health.
+- Sleep 7–9h: memory consolidation, emotion regulation, glymphatic clearance. Fixed wake time matters.
+- Exercise: BDNF, hippocampal support, cerebral blood flow. Floor: 150 min/week aerobic + 2 strength days. Even a 20-min brisk walk counts.
+- MIND diet pattern: leafy greens, berries, nuts, fish, olive oil, beans; limit ultra-processed, fried, sweets. (Do not prescribe a medical diet.)
+- ACTIVE trial: reasoning and processing-speed training reduced decline over 10 years more than memory-list drills. Prefer those micro-drills over crossword gimmicks.
+- Cognitive reserve: hard learning + social engagement beat passive puzzles.
+- Yoga/mindfulness evidence for stress biology and connectivity — offer as optional 10-min protocols.
+- Hearing and vision: checkup reminders only, no fake tests.
+
+BRAIN STACK DASHBOARD (behavior, not a disease score)
+Tiles with today’s floor vs done:
+- Sleep window (hours + wake time)
+- Aerobic minutes
+- Strength (yes/no this day)
+- MIND-style meal flag
+- Social: one real conversation
+- Hard learning: 15 min
+- Stress downshift: 5–10 min
+- Smoking/alcohol honest log (no lecture, a count)
+- Hearing/vision “last checkup” date
+Composite “stack consistency” 0–100 as % of floors hit this week. NEVER label it brain age or dementia risk %.
+
+DAILY FLOORS (heroics banned)
+- 7h sleep opportunity
+- 20–30 min brisk move (or 2×15)
+- 1 leafy green or berry serving
+- 1 named human contact
+- 15 min of something hard to learn
+- optional 10 min downshift
+
+MICRO-DRILLS (≤8 min)
+- Processing speed (simple timed discrimination)
+- Reasoning (pattern / rule, not trivia)
+Log effort. Do not replace walking with drilling.
+
+NUDGES
+- BDNF line: “Get slightly out of breath. That session feeds the brain.”
+- “Book a walk with someone” satisfies move + social.
+- Clinician nudges for BP / LDL / hearing / vision as checklists, not numbers the app invents.
+
+DATA
+Sleep, Move, MealFlag, SocialContact, LearnMinutes, DrillSessions, SubstanceFlags, CheckupDates.
+Local persist.
+
+TONE
+Sober, hopeful, anti-woo. No nootropics shop. No “hack your IQ.”
+
+SHIP
+Dashboard, daily floors, 8-min drill, 10-min breath/walk protocol, weekly stack chart, disclaimer, empty state that starts with sleep and a walk.

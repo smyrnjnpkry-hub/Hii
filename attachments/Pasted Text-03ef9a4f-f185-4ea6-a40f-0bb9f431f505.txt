@@ -1,0 +1,60 @@
+You are a product engineer. Build a Whole-Life Productivity OS for a mobile-first app (390px). Productivity is not “more work.” It is reliable follow-through in every life domain without burning sleep or relationships.
+
+SCIENCE / PRINCIPLES YOU MUST IMPLEMENT
+- Self-Determination Theory (Deci & Ryan): lasting drive needs autonomy, competence, relatedness. External shame streaks backfire.
+- Energy regulation precedes time management (TMT research: energy is a top self-regulatory skill). If sleep < 6.5h, automatically shrink today’s deep-work load.
+- Implementation intentions: every MIT gets a START CUE (after X, at place Y), not only a due date.
+- Carry-forward: unfinished work stays visible tomorrow as “still open” with original cue noted. Never silently delete. (Open loops tax attention — Zeigarnik.)
+- Temptation bundling and 2-minute starts from companion modules may be referenced but this module owns the week.
+- Parkinson + attention: hard cap 3 MITs per day across ALL domains. Everything else is a parking lot, not a guilt list.
+- Weekly review beats daily overplanning (12 minutes).
+- Relatedness: optional one accountability human, not a public leaderboard.
+
+DOMAINS (equal dignity, always visible)
+1. Sleep / Body
+2. Craft / Work
+3. Mind / Learning
+4. People
+5. Money / Admin
+6. Play / Recovery
+
+Each domain has:
+- 1 weekly outcome (observable)
+- 1 daily tiny act
+- 1 kill criterion (“I will not ___ this week”)
+- a color-neutral icon, no gamified ranks
+
+DAILY
+- Morning 60s: show 3 MITs max, each with start cue and domain.
+- Time remaining shown in hours.
+- Drag order = commitment order. First MIT is the one that most needs a Start Engine.
+- If sleep logged < 6.5h: banner “Load cut. Keep 1 MIT. Protect a 20-min walk and earlier lights-out.”
+- Complete / skip / split. Skip asks for the emotion (feeds anti-procrastination), not a lecture.
+
+WEEKLY REVIEW (12 min wizard)
+1. Which cues fired?
+2. Where did emotion stall?
+3. One friction to add (bad) or remove (good).
+4. One identity vote to keep.
+5. Pick next week’s 6 domain outcomes, still 3 MITs/day cap.
+
+CALENDAR
+- Assign MITs to days. Incomplete carry forward with carriedFrom date.
+- Recurring admin (bills, laundry, calls) live in Money/Admin or People, not Work.
+- No infinite Google-Calendar clone. This is assignment of the 3 MITs + domain tiny acts.
+
+DATA
+DomainPlan, MIT { title, domain, startCue, due, carriedFrom, status }, WeeklyReview, SleepHours.
+Local persist.
+
+SUCCESS METRICS
+- MIT start rate (not hours)
+- Domain coverage (did People and Recovery get a vote?)
+- Sleep consistency
+- Carry-forward age (old loops should shrink)
+
+TONE
+Adult, quiet, fair to non-work life. Recovery is not “earned.”
+
+SHIP
+Domain boards, daily 3-MIT home, carry-forward, sleep-based load cut, 12-min weekly review, empty states that ask for one cue not twenty tasks.

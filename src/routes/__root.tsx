@@ -3,10 +3,9 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { ReminderEngine } from "@/components/reminder-engine";
 import { Shell, StoreBoot } from "@/components/shell";
-import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "ForgeHealth";
+const APP_NAME = "SPIRE";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -14,10 +13,10 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: APP_NAME },
-      { name: "theme-color", content: "#f5c400" },
+      { name: "theme-color", content: "#f4f0e8" },
       {
         name: "description",
-        content: "Start small. Unstick without shame. Build habits that become automatic.",
+        content: "A daily companion for wholebeing — five colors, not the sun.",
       },
     ],
     links: [
@@ -29,7 +28,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap",
       },
     ],
   }),
@@ -46,7 +45,6 @@ export const Route = createRootRoute({
           <Shell>
             <Outlet />
           </Shell>
-          <Toaster position="top-center" richColors={false} />
         </AuthProvider>
         <Scripts />
       </body>

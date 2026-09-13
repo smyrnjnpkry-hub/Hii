@@ -1,0 +1,55 @@
+You are a product engineer and behavioral scientist. Build a complete Habit Formation module for a mobile-first wellness app (390px width, thumb-zone primary actions). Ground every mechanic in evidence. Do not invent folk-psychology rules.
+
+SCIENCE YOU MUST IMPLEMENT
+- Habits are context→response memories (Wendy Wood): they fire from stable cues, not from motivation. Once automatic, changing intentions barely works. Change the cue, the friction, and the reward.
+- Habit loop: Cue → Craving → Response → Reward (Graybiel chunking in basal ganglia).
+- BJ Fogg MAP: Behavior = Motivation × Ability × Prompt. If a habit fails, shrink Ability or add a Prompt. Never “try harder.”
+- Implementation intentions (Gollwitzer): “If situation X, then I do Y.” Meta-analysis d≈0.65. Routine-based cues beat clock-based cues (Keller RCT).
+- Tiny Habits: first action ≤2 minutes. Immediate celebration after the act wires it (emotion, not mere repetition, stamps the habit).
+- Lally et al.: automaticity median 66 days, range 18–254. Exercise slower (\~91) than simple acts (\~59). Missing one day does NOT reset the curve. Kill the “21-day” myth in UI copy.
+- James Clear: identity first, then votes. Four laws to build: obvious, attractive, easy, satisfying.
+- Milkman gym megastudy: planning + reminder at the cue + tiny reward, and a micro-reward after a missed session, outperform pep talks.
+- Cap concurrent NEW habits at 3. Highlight one keystone.
+
+ONBOARDING (≤90 seconds)
+1. Identity sentence: “I am someone who ___.”
+2. One tiny behavior that is a vote for that identity (app must reject anything >2 minutes and offer a shrink).
+3. Forced if-then stack: After I [existing routine they already do], I will [tiny act], in [place].
+4. Name the prompt (visual object, location, previous action). No “at 7:00 AM” as the only cue.
+
+DAILY UX
+- Home card shows ONLY today’s cued tiny acts (max 3), each with the stack sentence.
+- One primary button per habit: “Fired after the cue.”
+- On success: 1-second celebration + “Vote cast for [identity].”
+- On miss: no shame, no broken-streak red X. Copy: “Automaticity is not reset. Shrink or redesign the cue.” Offer: shrink the act, move the prompt, or add friction-removal.
+- If 2 misses in a row, auto-shrink the behavior and ask “what blocked the prompt?”
+
+AUTOMATICITY
+- 2×/week SRBAI-style 1–7: “I do this without thinking.”
+- Chart personal curve. Annotate expected window 18–254 days. Never a countdown to day 21 or 66 as a finish line.
+
+ENVIRONMENT DESIGN CHECKLIST (per habit)
+- Make it obvious (cue visible)
+- Make it attractive (pair with a want, or identity)
+- Make it easy (tools placed, 2-minute version)
+- Make it satisfying (immediate mark + celebration)
+Show a 4-toggle design panel the user can edit.
+
+DATA
+Habit { id, identity, tinyAct, fullAct (optional later scale-up), cueRoutine, cuePlace, prompt, createdAt, completions[], misses[], automaticityScores[], shrinkHistory[], keystone: boolean }
+Local persist. No social feed. No public leaderboard.
+
+SUCCESS METRICS IN PRODUCT
+- Cued starts / week
+- Automaticity slope
+- Days with ≥1 keystone vote
+NOT: points, coins, fire streaks as identity.
+
+TONE
+Calm, adult, specific. Zero hustle. Zero shame. Teach the mechanism in one line on empty states.
+
+OUT OF SCOPE
+No calorie counting, no medical claims, no “become a new person in 21 days.”
+
+SHIP
+Full UI, empty states, sample identity+habit for first-run demo, local store, working if-then builder, shrink flow, automaticity chart, night 30-second “did the cue fire?” recap.
