@@ -1,10 +1,11 @@
+import { HabitPlayCard, Heatmap, TwoMinuteStart } from "@/components/habit-play";
 import { Button, Card, Input, Modal, Segmented, Switch } from "@/components/ui";
+import { longestStreak, scheduledStreak } from "@/lib/habit-play";
 import { MICRO_LIBRARY, MVI_LIBRARY, PILLAR_META } from "@/lib/pillars";
 import { DOW_DEFAULT, useStore } from "@/lib/store";
 import { PILLARS, type Habit, type Pillar } from "@/lib/types";
-import { cn, estimateMinutes, todayKey, weekday } from "@/lib/utils";
+import { cn, estimateMinutes, todayKey } from "@/lib/utils";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/habits")({ component: HabitsPage });
@@ -15,9 +16,6 @@ const DOW = ["S", "M", "T", "W", "T", "F", "S"];
 
 function HabitsPage() {
   const habits = useStore((s) => s.habits);
-  const completeHabit = useStore((s) => s.completeHabit);
-  const missHabit = useStore((s) => s.missHabit);
-  const shrinkHabit = useStore((s) => s.shrinkHabit);
   const addHabit = useStore((s) => s.addHabit);
   const updateHabit = useStore((s) => s.updateHabit);
   const scoreAutomaticity = useStore((s) => s.scoreAutomaticity);
@@ -25,8 +23,8 @@ function HabitsPage() {
   const [layer, setLayer] = useState<Layer>("pinned");
   const [editing, setEditing] = useState<Habit | null>(null);
   const [builder, setBuilder] = useState(false);
+  const [play, setPlay] = useState<Habit | null>(null);
   const today = todayKey();
-  const dow = weekday(today);
   const pinned = habits.filter((h) => h.kind === "habit");
   const liveCount = pinned.length;
 
@@ -37,8 +35,8 @@ function HabitsPage() {
       </p>
       <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">Small is enough.</h1>
       <p className="mt-2 text-sm text-muted">
-        Default three days a week, not seven. Missing a day does not reset automaticity. 18–254
-        days is the real window — not 21.
+        If this, then that. Two minutes after an existing cue. Three habits is the cap. Missing a
+        day does not reset automaticity — never miss twice.
       </p>
 
       <div className="mt-4">
@@ -104,51 +102,29 @@ function HabitsPage() {
             </Button>
           )}
           {pinned.map((h) => {
-            const done = h.completions.some((c) => c.date === today);
-            const dueToday = h.daysOfWeek.includes(dow);
             const auto = h.automaticity[0]?.score;
+            const streak = scheduledStreak(h, today);
+            const best = longestStreak(h, today);
             return (
-              <Card key={h.id}>
-                {h.keystone ? (
-                  <p className="text-xs uppercase tracking-wide text-muted">Keystone</p>
-                ) : null}
-                <p className="text-xs text-muted">{h.identity}</p>
-                <p className="font-medium">{h.tinyAct}</p>
-                <p className="text-sm text-muted">
-                  After {h.cueRoutine}, in {h.cuePlace}. Prompt: {h.prompt}.
-                </p>
-                <p className="mt-1 text-xs text-muted">
-                  {h.daysOfWeek.map((d) => DOW[d]).join(" · ")}
-                  {auto ? ` · automaticity ${auto}/7` : ""}
-                </p>
-                {dueToday ? (
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      size="sm"
-                      variant={done ? "primary" : "solid"}
-                      className="flex-1"
-                      onClick={() => (done ? missHabit(h.id) : completeHabit(h.id))}
-                    >
-                      <Check className="size-4" />
-                      {done ? "Vote cast" : "Fired after the cue"}
-                    </Button>
-                    {!done ? (
-                      <Button size="sm" variant="ghost" onClick={() => shrinkHabit(h.id)}>
-                        Shrink
-                      </Button>
-                    ) : null}
+              <div key={h.id} className="flex flex-col gap-2">
+                <HabitPlayCard habit={h} today={today} onStart={setPlay} />
+                <Card>
+                  <p className="text-xs text-muted">
+                    Chain {streak} · best {best}
+                    {auto ? ` · automaticity ${auto}/7` : ""} · {h.daysOfWeek.map((d) => DOW[d]).join(" · ")}
+                  </p>
+                  <div className="mt-3">
+                    <Heatmap habit={h} today={today} />
                   </div>
-                ) : (
-                  <p className="mt-2 text-xs text-muted">Not cued today.</p>
-                )}
-                <button
-                  type="button"
-                  className="mt-2 text-xs text-muted underline"
-                  onClick={() => setEditing(h)}
-                >
-                  Edit 3 Rs and environment
-                </button>
-              </Card>
+                  <button
+                    type="button"
+                    className="mt-3 text-xs text-muted underline"
+                    onClick={() => setEditing(h)}
+                  >
+                    Edit 3 Rs and environment
+                  </button>
+                </Card>
+              </div>
             );
           })}
         </div>
@@ -212,6 +188,7 @@ function HabitsPage() {
       {editing ? (
         <EditHabit habit={editing} onClose={() => setEditing(null)} />
       ) : null}
+      <TwoMinuteStart habit={play} open={!!play} onClose={() => setPlay(null)} />
     </div>
   );
 }
@@ -243,6 +220,15 @@ function HabitBuilder({ open, onClose }: { open: boolean; onClose: () => void })
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="The thing I will see"
         />
+        {tinyAct && cueRoutine ? (
+          <Card className="bg-sunken">
+            <p className="text-xs uppercase tracking-wide text-muted">If-then</p>
+            <p className="mt-1 text-sm">
+              After I {cueRoutine}, in {cuePlace || "this place"}, I will {tinyAct}.
+            </p>
+            <p className="mt-1 text-xs text-muted">{identity}</p>
+          </Card>
+        ) : null}
         <div className="flex flex-wrap gap-1.5">
           {PILLARS.map((p) => (
             <button
