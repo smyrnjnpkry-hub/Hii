@@ -1,11 +1,19 @@
+import {
+  AllVotesIn,
+  HabitPlayCard,
+  TwoMinuteStart,
+  VotesRing,
+  WeekChain,
+} from "@/components/habit-play";
 import { Radar } from "@/components/radar";
 import { StallFlow } from "@/components/stall";
 import { Button, Card } from "@/components/ui";
+import { recoveryHabits, todayVotes } from "@/lib/habit-play";
 import { HARD_STAIRS, PILLAR_META, mviFor } from "@/lib/pillars";
 import { isScheduledToday, totalSec } from "@/lib/routines";
 import { lastNightSleep, lowestFrom, useStore } from "@/lib/store";
 import { isInTodayView } from "@/lib/tasks";
-import type { Mit } from "@/lib/types";
+import type { Habit, Mit } from "@/lib/types";
 import { cn, formatDuration, formatLongDate, formatTime, hoursUntil, todayKey, weekday } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Check, Play } from "lucide-react";
@@ -19,9 +27,6 @@ function Today() {
   const habits = useStore((s) => s.habits);
   const mits = useStore((s) => s.mits);
   const sleepLog = useStore((s) => s.sleepLog);
-  const completeHabit = useStore((s) => s.completeHabit);
-  const missHabit = useStore((s) => s.missHabit);
-  const shrinkHabit = useStore((s) => s.shrinkHabit);
   const setSeason = useStore((s) => s.setSeason);
   const completeMit = useStore((s) => s.completeMit);
   const hardStairs = useStore((s) => s.hardStairs);
@@ -47,6 +52,9 @@ function Today() {
   const sleep = lastNightSleep({ sleepLog });
   const loadCut = (sleep?.hours ?? 8) < 6.5;
   const [stall, setStall] = useState<Mit | null>(null);
+  const [play, setPlay] = useState<Habit | null>(null);
+  const votes = todayVotes(habits, today);
+  const recover = recoveryHabits(habits, today);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -75,10 +83,50 @@ function Today() {
         </button>
       </div>
       <p className="mt-2 text-sm text-muted">
-        Do not chase a feeling. Look at the five colors.
+        Do not chase a feeling. Cast the tiny vote after the cue.
       </p>
 
       <Card className="mt-5">
+        <VotesRing done={votes.done} due={votes.due} />
+        <WeekChain habits={habits} today={today} />
+      </Card>
+
+      {recover.length > 0 ? (
+        <Card className="mt-4 bg-sunken">
+          <p className="font-medium">Never miss twice.</p>
+          <p className="text-sm text-muted">
+            {recover[0].tinyAct} slipped last time. Automaticity is not reset. Shrink it, then
+            start.
+          </p>
+          <Button size="sm" className="mt-3" onClick={() => setPlay(recover[0])}>
+            Two-minute recovery
+          </Button>
+        </Card>
+      ) : null}
+
+      <section className="mt-6">
+        <div className="mb-2 flex items-baseline justify-between">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted">
+            After the cue
+          </p>
+          <Link to="/habits" className="text-xs text-muted">
+            Design
+          </Link>
+        </div>
+        <div className="flex flex-col gap-2">
+          {due.length === 0 ? (
+            <p className="text-sm text-muted">No habits pinned to this weekday.</p>
+          ) : (
+            due.map((h) => (
+              <HabitPlayCard key={h.id} habit={h} today={today} onStart={setPlay} />
+            ))
+          )}
+        </div>
+      </section>
+
+      <AllVotesIn show={votes.complete} />
+
+      <Card className="mt-4">
         <Radar scores={last?.scores ?? null} />
         <p className="mt-1 text-center text-xs text-muted">
           {last ? `Last check-in · ${last.date}` : "No check-in yet"}
@@ -109,54 +157,6 @@ function Today() {
             Open in Habits →
           </Link>
         </Card>
-      </section>
-
-      <section className="mt-6">
-        <p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-muted">
-          After the cue
-        </p>
-        <div className="flex flex-col gap-2">
-          {due.length === 0 ? (
-            <p className="text-sm text-muted">No habits pinned to this weekday.</p>
-          ) : (
-            due.slice(0, 3).map((h) => {
-              const done = h.completions.some((c) => c.date === today);
-              const missed = h.misses.some((m) => m.date === today);
-              return (
-                <Card key={h.id} className="flex items-start gap-3">
-                  <button
-                    type="button"
-                    onClick={() => (done ? missHabit(h.id) : completeHabit(h.id))}
-                    className={cn(
-                      "mt-0.5 grid size-11 shrink-0 place-items-center rounded-full",
-                      done ? "bg-primary text-primary-fg" : "bg-sunken text-muted",
-                    )}
-                    aria-label="Fired after the cue"
-                  >
-                    <Check className="size-5" />
-                  </button>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-muted">
-                      After {h.cueRoutine}, in {h.cuePlace}
-                    </p>
-                    <p className="font-medium">{h.tinyAct}</p>
-                    {done ? (
-                      <p className="text-xs text-primary">Vote cast for {h.identity}</p>
-                    ) : missed ? (
-                      <button
-                        type="button"
-                        className="text-xs text-muted underline"
-                        onClick={() => shrinkHabit(h.id)}
-                      >
-                        Automaticity is not reset. Shrink the act.
-                      </button>
-                    ) : null}
-                  </div>
-                </Card>
-              );
-            })
-          )}
-        </div>
       </section>
 
       <section className="mt-6">
@@ -326,6 +326,7 @@ function Today() {
       </div>
 
       <StallFlow mit={stall} open={!!stall} onClose={() => setStall(null)} />
+      <TwoMinuteStart habit={play} open={!!play} onClose={() => setPlay(null)} />
     </div>
   );
 }
