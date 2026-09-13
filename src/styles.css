@@ -120,3 +120,13 @@ html.reduce-motion *::after {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
+
+@keyframes vote-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.habit-voted {
+  animation: vote-pulse 420ms var(--ease-out-soft);
+}

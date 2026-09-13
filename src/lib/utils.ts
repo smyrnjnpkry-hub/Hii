@@ -65,8 +65,10 @@ export function estimateMinutes(text: string) {
   const t = text.toLowerCase();
   const m = t.match(/(\d+)\s*(min|minute)/);
   if (m) return Number(m[1]);
+  if (/\btwo\s+minutes?\b/.test(t)) return 2;
+  if (/\bone\s+minute\b/.test(t)) return 1;
   if (/\b(hour|60)\b/.test(t)) return 60;
-  if (/\b(second|breath|gratitude|awe)\b/.test(t)) return 1;
+  if (/\b(second|breath|gratitude|awe|thirty)\b/.test(t)) return 1;
   return 5;
 }
 
